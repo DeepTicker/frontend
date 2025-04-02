@@ -7,6 +7,7 @@ import NewsPage from './pages/NewsPage';
 import StockPage from './pages/StockPage';
 import ChatbotPage from './pages/ChatbotPage';
 import StockDetail from "./pages/StockDetail";                                                                                   
+import NewsDetailPage from './pages/NewsDetailPage';
 
 // 네비게이션 바
 import Navbar from './components/Navbar';
@@ -25,6 +26,7 @@ function App() {
           <Route path="/news" element={<NewsPage />} />
           <Route path="/stocks" element={<StockPage />} />
           <Route path="/stocks/:name" element={<StockDetail />} /> 
+          <Route path="/news/:id" element={<NewsDetailPage />} />
           <Route path="/chatbot" element={<ChatbotPage />} />
         </Routes>
       </div>
