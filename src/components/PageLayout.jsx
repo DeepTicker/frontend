@@ -5,7 +5,7 @@ import React from 'react';
 
 const PageLayout = ({ children }) => {
   return (
-    <div style={{ paddingTop: '80px', padding: '20px' }}>
+    <div style={{ paddingTop: '100px', padding: '20px' }}>
       {children}
     </div>
   );
