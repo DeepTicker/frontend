@@ -1,20 +1,31 @@
-import React from 'react';
-import mockData from '../mockData/newsMockData.json';
+import React, { useEffect, useState } from 'react';
 
 const NewsPreview = () => {
-  const newsList = mockData.news_raw;
-  // newsList의 마지막 5개를 추출하고, 최신 기사가 맨 위에 오도록 역순 정렬
-  const recentNews = newsList.slice(-5).reverse();
+  const [newsList, setNewsList] = useState([]);
+
+  useEffect(() => {
+    const fetchMainNews = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/news/main?limit=5");
+        const data = await res.json();
+        setNewsList(data);
+      } catch (error) {
+        console.error("❌ 메인 뉴스 불러오기 실패:", error);
+      }
+    };
+
+    fetchMainNews();
+  }, []);
 
   return (
     <section style={{ marginBottom: '20px' }}>
       <h2>최근 뉴스</h2>
       <ul style={{ listStyleType: 'none', padding: 0 }}>
-        {recentNews.map((news) => (
-          <li key={news.news_id} style={{ marginBottom: '12px' }}>
+        {newsList.map((news) => (
+          <li key={news.id} style={{ marginBottom: '12px' }}>
             <h4 style={{ margin: '0 0 4px 0', color: '#2F2F2F' }}>{news.title}</h4>
             <p style={{ fontSize: '14px', color: '#555', margin: 0 }}>
-              {news.content.substring(0, 50)}...
+              분류: {news.category} | 대표: {news.representative || '없음'}
             </p>
           </li>
         ))}
