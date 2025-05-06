@@ -6,7 +6,7 @@ const NewsPreview = () => {
   useEffect(() => {
     const fetchMainNews = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/news/main?limit=5");
+        const res = await fetch("http://localhost:5000/api/news/main?limit=5");
         const data = await res.json();
         setNewsList(data);
       } catch (error) {

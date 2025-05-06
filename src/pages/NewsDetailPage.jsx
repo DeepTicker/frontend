@@ -1,37 +1,43 @@
+// pages/NewsDetailPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
-import mockData from '../mockData/newsMockData.json'; // 목업 데이터 파일
 
 const NewsDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const newsId = parseInt(id);
 
-  // raw 뉴스 데이터를 news_raw에서 찾음
-  const rawNews = Array.isArray(mockData.news_raw)
-    ? mockData.news_raw.find((n) => n.news_id === newsId)
-    : Object.values(mockData.news_raw).find((n) => n.news_id === newsId);
-
-  // 기본 난이도: 중급
+  const [rawNews, setRawNews] = useState(null);
+  const [gptNews, setGptNews] = useState(null);
   const [level, setLevel] = useState("중급");
+  const [, setLoading] = useState(true);
 
-  //지피티데이터에서 난이도에 따른 정보 가져오기기
-  const gptNews = mockData.news_gpt.find(
-    (n) => n.news_id === newsId && n.level === level
-  );
+  // 뉴스 원문 데이터 가져오기
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        setRawNews(data?.rawNews || null);
+        setGptNews(data?.gptNews || null);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [newsId, level]);
+  
 
   // 데이터가 없으면 에러 처리
-  if (!rawNews || !gptNews) {
+  if (!rawNews) {
     return (
       <PageLayout>
-        <p>존재하지 않는 뉴스입니다.</p>
+        <p>존재하지 않는 뉴스입니다. : 데이터가 없음</p>
       </PageLayout>
     );
   }
 
   // 산업군 여부 판별
-  const isIndustry = gptNews.stock_type === "산업군";
+  const isIndustry = gptNews?.stock_type === "산업군";
 
   return (
     <PageLayout>
@@ -43,7 +49,7 @@ const NewsDetailPage = () => {
           </button>
           <h2 style={{ color: '#2F2F2F', marginBottom: '8px' }}>{rawNews.title}</h2>
           <p style={{ fontSize: '12px', color: '#777' }}>
-            {rawNews.newspaper} | {rawNews.reporter} | {new Date(rawNews.publish_date).toLocaleDateString()}
+            {rawNews.press} | {rawNews.reporter} | {new Date(rawNews.date).toLocaleDateString()}
           </p>
           <p style={{ fontSize: '14px', color: '#555' }}>{rawNews.content}</p>
         </div>
@@ -85,20 +91,27 @@ const NewsDetailPage = () => {
           {/* 기사 요약과 배경지식 */}
           <div>
             <h4 style={{ margin: '4px 0' }}>한줄 요약</h4>
-            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews.one_line_summary}</p>
+            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews?gptNews.one_line_summary:'요약 데이터 없음'}</p>
 
             <h4 style={{ margin: '4px 0' }}>전체 요약</h4>
-            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews.full_summary}</p>
+            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews?gptNews.full_summary:'요약 데이터 없음'}</p>
 
             <h4 style={{ margin: '4px 0' }}>배경지식</h4>
-            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews.background}</p>
+            {gptNews && gptNews.background ? (
+              <div 
+                style={{ fontSize: '14px', color: '#333' }}
+                dangerouslySetInnerHTML={{ __html: gptNews.background }}
+              />
+            ) : (
+              <p style={{ fontSize: '14px', color: '#333' }}>요약 데이터 없음</p>
+            )}
           </div>
 
           {/* 상승/하락 주식 (오른쪽 영역 하단) */}
           <div>
             <h4 style={{ marginBottom: '8px' }}>긍정/부정 주식</h4>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {(gptNews.positive_stocks||[]).map((stock) =>
+              {(gptNews?.positive_stocks||[]).map((stock) =>
                 isIndustry ? (
                   <div
                     key={stock}
@@ -130,7 +143,7 @@ const NewsDetailPage = () => {
                   </button>
                 )
               )}
-              {(gptNews.negative_stocks||[]).map((stock) =>
+              {(gptNews?.negative_stocks||[]).map((stock) =>
                 isIndustry ? (
                   <div
                     key={stock}
