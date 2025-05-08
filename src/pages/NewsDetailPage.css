@@ -1,0 +1,153 @@
+/* NewsDetailPage.css */
+
+/* 페이지 레이아웃 */
+.news-detail-container {
+  display: flex;
+  gap: 24px;
+}
+
+/* 뉴스 원문 영역 */
+.news-content-section {
+  flex: 3;
+}
+
+.back-button {
+  margin-top: 10px;
+  margin-bottom: 16px;
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.news-title {
+  color: #2F2F2F;
+  margin-bottom: 8px;
+  font-size: 1.5rem;
+}
+
+.news-meta {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 12px;
+}
+
+.news-category-tag {
+  display: inline-block;
+  margin: 8px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  font-size: 13px;
+}
+
+.news-category-label {
+  font-weight: bold;
+}
+
+.news-representative {
+  margin-left: 6px;
+}
+
+.news-content-text {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* 뉴스 분석 영역 */
+.news-analysis-section {
+  flex: 2;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 난이도 선택 영역 */
+.level-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.level-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.level-button.active {
+  background-color: #eee;
+  font-weight: bold;
+}
+
+/* 요약 영역 */
+.summary-section {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  margin: 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.summary-text {
+  font-size: 14px;
+  color: #333;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+/* 주식 정보 영역 */
+.stock-section {
+  margin-top: 10px;
+}
+
+.stock-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.stock-positive {
+  background-color: #D62828;
+  color: #fff;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.stock-negative {
+  background-color: #1D4ED8;
+  color: #fff;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.stock-button {
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.stock-button.positive {
+  background-color: #D62828;
+  color: #fff;
+}
+
+.stock-button.negative {
+  background-color: #1D4ED8;
+  color: #fff;
+} 

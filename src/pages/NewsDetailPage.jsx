@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
+import BackgroundKnowledge from '../components/BackgroundKnowledge';
+import '../components/BackgroundKnowledge.css'; // 배경지식 컴포넌트 CSS
+import './NewsDetailPage.css'; // 뉴스 페이지 CSS
 
 const NewsDetailPage = () => {
   const { id } = useParams();
@@ -14,6 +17,13 @@ const NewsDetailPage = () => {
   const [level, setLevel] = useState("중급");
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [, setLoading] = useState(true);
+  
+  // 카테고리에 따른 상태 변수들
+  const [isIndustry, setIsIndustry] = useState(false);
+  const [isTheme, setIsTheme] = useState(false);
+  const [isMacro, setIsMacro] = useState(false);
+  const [isStock, setIsStock] = useState(false);
+  const [isElse, setIsElse] = useState(false);
 
   // 뉴스 원문 데이터 가져오기
   useEffect(() => {
@@ -23,9 +33,26 @@ const NewsDetailPage = () => {
       .then(data => {
         setRawNews(data?.rawNews || null);
         setGptNews(data?.gptNews || null);
+        
+        // 카테고리에 따른 상태 설정
+        if (data?.rawNews?.category) {
+          const category = data.rawNews.category;
+          setIsIndustry(category === '산업군');
+          setIsTheme(category === '테마');
+          setIsMacro(category === '전반적');
+          setIsStock(category === '개별주');
+          setIsElse(category === '그 외');
+          
+          console.log('카테고리:', category);
+          console.log('대표:', data.rawNews.representative);
+        }
+        
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("데이터 로딩 오류:", err);
+        setLoading(false);
+      });
   }, [newsId, level]);
   
   // 배경지식 재생성 함수
@@ -34,28 +61,64 @@ const NewsDetailPage = () => {
     
     try {
       setIsRegenerating(true);
-      const response = await fetch('http://localhost:5000/api/news/industry/regenerate', {
+      console.log('재생성 요청 시작:', { newsId, level, category: rawNews.category });
+      
+      // 카테고리에 따라 API 엔드포인트 설정
+      const endpoint = isIndustry 
+        ? 'http://localhost:5000/api/news/industry/regenerate'
+        : isTheme 
+          ? 'http://localhost:5000/api/news/theme/regenerate'
+          : null;
+          
+      if (!endpoint) {
+        throw new Error('지원하지 않는 카테고리입니다.');
+      }
+      
+      // API 요청
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newsId, level })
+        body: JSON.stringify({ 
+          newsId, 
+          level,
+          news_id: newsId,
+          representative: rawNews.representative // 대표 정보도 전달
+        })
       });
       
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
       
-      if (result && result.success) {
+      const result = await response.json();
+      console.log('재생성 결과:', result);
+      
+      if (result && (result.success || result.status === 'success')) {
         // 성공적으로 재생성되면 데이터를 새로고침
+        console.log('재생성 성공, 데이터 새로고침');
         fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
-          .then(res => res.ok ? res.json() : null)
+          .then(res => {
+            if (!res.ok) throw new Error('데이터 갱신 실패');
+            return res.json();
+          })
           .then(data => {
+            console.log('새로운 데이터:', data);
             setRawNews(data?.rawNews || null);
             setGptNews(data?.gptNews || null);
+            alert('배경지식이 재생성되었습니다.');
           })
-          .catch(err => console.error('데이터 갱신 실패:', err));
+          .catch(err => {
+            console.error('데이터 갱신 실패:', err);
+            alert('배경지식 생성 후 데이터 갱신 중 오류가 발생했습니다.');
+          });
+      } else {
+        alert('배경지식 재생성에 실패했습니다.');
       }
     } catch (err) {
       console.error('재생성 중 오류 발생:', err);
+      alert(`재생성 오류: ${err.message || '알 수 없는 오류'}`);
     } finally {
       setIsRegenerating(false);
     }
@@ -69,9 +132,9 @@ const NewsDetailPage = () => {
       </PageLayout>
     );
   }
-
-  // 산업군 여부 판별
-  const isIndustry = gptNews?.stock_type === "산업군";
+  
+  console.log('산업군 여부 최종 확인:', isIndustry, '레벨:', level);
+  console.log('배경지식 내용 존재 여부:', Boolean(gptNews?.background));
 
   const handleGoBack = () => {
     const fromPage = location.state?.fromPage;
@@ -84,47 +147,39 @@ const NewsDetailPage = () => {
 
   return (
     <PageLayout>
-      <div style={{ display: 'flex', gap: '24px' }}>
+      <div className="news-detail-container">
         {/* 왼쪽 영역: 뉴스 원본 데이터 */}
-        <div style={{ flex: 3 }}>
-          <button onClick={handleGoBack} style={{ marginTop: '10px', marginBottom: '16px' }}>
+        <div className="news-content-section">
+          <button onClick={handleGoBack} className="back-button">
             ← 뒤로가기
           </button>
-          <h2 style={{ color: '#2F2F2F', marginBottom: '8px' }}>{rawNews.title}</h2>
-          <p style={{ fontSize: '12px', color: '#777' }}>
+          <h2 className="news-title">{rawNews.title}</h2>
+          <p className="news-meta">
             {rawNews.press} | {rawNews.reporter} | {new Date(rawNews.date).toLocaleDateString()}
           </p>
-          <p style={{ fontSize: '14px', color: '#555' }}>{rawNews.content}</p>
+          
+          {/* 카테고리 및 대표 정보 표시 */}
+          {rawNews.category && (
+            <div className="news-category-tag">
+              <span className="news-category-label">분류: {rawNews.category}</span>
+              {rawNews.category !== '그 외' && rawNews.representative && (
+                <span className="news-representative">| 대표: {rawNews.representative}</span>
+              )}
+            </div>
+          )}
+          
+          <p className="news-content-text">{rawNews.content}</p>
         </div>
 
         {/* 오른쪽 영역: GPT 처리 데이터 (요약, 배경, 상승/하락 주식) */}
-        <div
-          style={{
-            flex: 2,
-            backgroundColor: '#fff',
-            borderRadius: '8px',
-            padding: '16px',
-            marginTop: '10px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}
-        >
+        <div className="news-analysis-section">
           {/* 난이도 선택 버튼 */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="level-selector">
             {["초급", "중급", "고급"].map((lvl) => (
               <button
                 key={lvl}
                 onClick={() => setLevel(lvl)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  backgroundColor: level === lvl ? '#eee' : '#fff',
-                  cursor: 'pointer',
-                  fontWeight: level === lvl ? 'bold' : 'normal'
-                }}
+                className={`level-button ${level === lvl ? 'active' : ''}`}
               >
                 {lvl}
               </button>
@@ -132,58 +187,47 @@ const NewsDetailPage = () => {
           </div>
 
           {/* 기사 요약과 배경지식 */}
-          <div>
-            <h4 style={{ margin: '4px 0' }}>한줄 요약</h4>
-            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews?gptNews.one_line_summary:'요약 데이터 없음'}</p>
+          <div className="summary-section">
+            <h4 className="section-title">한줄 요약</h4>
+            <p className="summary-text">{gptNews?gptNews.one_line_summary:'요약 데이터 없음'}</p>
 
-            <h4 style={{ margin: '4px 0' }}>전체 요약</h4>
-            <p style={{ fontSize: '14px', color: '#333' }}>{gptNews?gptNews.full_summary:'요약 데이터 없음'}</p>
+            <h4 className="section-title">전체 요약</h4>
+            <p className="summary-text">{gptNews?gptNews.full_summary:'요약 데이터 없음'}</p>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ margin: '4px 0' }}>배경지식</h4>
-              {isIndustry && level === "중급" && (
+            {/* 배경지식 섹션 */}
+            <div className="background-section-header">
+              <h4 className="section-title">배경지식</h4>
+              {/* 산업군 또는 테마 + 중급 레벨일 때 재생성 버튼 표시 */}
+              {(isIndustry || isTheme) && level === "중급" && (
                 <button 
                   onClick={handleRegenerate}
                   disabled={isRegenerating}
-                  style={{
-                    padding: '4px 8px',
-                    backgroundColor: isRegenerating ? '#ccc' : '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: isRegenerating ? 'default' : 'pointer'
-                  }}
+                  className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
                 >
                   {isRegenerating ? '재생성 중...' : '재생성'}
                 </button>
               )}
             </div>
-            {gptNews && gptNews.background ? (
-              <div 
-                style={{ fontSize: '14px', color: '#333' }}
-                dangerouslySetInnerHTML={{ __html: gptNews.background }}
-              />
-            ) : (
-              <p style={{ fontSize: '14px', color: '#333' }}>요약 데이터 없음</p>
-            )}
+            <div className="background-knowledge-wrapper">
+              {gptNews && gptNews.background ? (
+                <BackgroundKnowledge background={gptNews.background} />
+              ) : (
+                <p>
+                  배경지식 데이터가 없습니다.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* 상승/하락 주식 (오른쪽 영역 하단) */}
-          <div>
-            <h4 style={{ marginBottom: '8px' }}>긍정/부정 주식</h4>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="stock-section">
+            <h4 className="section-title">긍정/부정 주식</h4>
+            <div className="stock-list">
               {(gptNews?.positive_stocks||[]).map((stock) =>
                 isIndustry ? (
                   <div
                     key={stock}
-                    style={{
-                      backgroundColor: '#D62828',
-                      color: '#fff',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '12px'
-                    }}
+                    className="stock-positive"
                   >
                     {stock}
                   </div>
@@ -191,15 +235,7 @@ const NewsDetailPage = () => {
                   <button
                     key={stock}
                     onClick={() => navigate(`/stocks/${stock}`)}
-                    style={{
-                      backgroundColor: '#D62828',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
+                    className="stock-button positive"
                   >
                     {stock}
                   </button>
@@ -209,13 +245,7 @@ const NewsDetailPage = () => {
                 isIndustry ? (
                   <div
                     key={stock}
-                    style={{
-                      backgroundColor: '#1D4ED8',
-                      color: '#fff',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '12px'
-                    }}
+                    className="stock-negative"
                   >
                     {stock}
                   </div>
@@ -223,15 +253,7 @@ const NewsDetailPage = () => {
                   <button
                     key={stock}
                     onClick={() => navigate(`/stocks/${stock}`)}
-                    style={{
-                      backgroundColor: '#1D4ED8',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
+                    className="stock-button negative"
                   >
                     {stock}
                   </button>

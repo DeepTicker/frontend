@@ -1,0 +1,86 @@
+/* NewsPage.css */
+
+/* 페이지 타이틀 */
+.news-page-title {
+  margin-bottom: 16px;
+  color: #2F2F2F;
+  font-size: 1.5rem;
+}
+
+/* 뉴스 목록 아이템 */
+.news-item {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.news-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.news-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.news-item-info {
+  cursor: pointer;
+  flex: 1;
+}
+
+.news-item-title {
+  margin: 0 0 6px 0;
+  color: #2F2F2F;
+  font-size: 1.1rem;
+}
+
+.news-item-meta {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+}
+
+/* 페이지네이션 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 12px;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.nav-button:disabled {
+  color: #ccc;
+  cursor: default;
+}
+
+.nav-button:not(:disabled) {
+  color: #888;
+}
+
+.page-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.page-button.active {
+  font-weight: bold;
+  color: orange;
+}
+
+.page-button:not(.active) {
+  color: #444;
+} 
