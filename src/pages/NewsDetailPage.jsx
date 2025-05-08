@@ -1,16 +1,18 @@
 // pages/NewsDetailPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 
 const NewsDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const newsId = parseInt(id);
 
   const [rawNews, setRawNews] = useState(null);
   const [gptNews, setGptNews] = useState(null);
   const [level, setLevel] = useState("중급");
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [, setLoading] = useState(true);
 
   // 뉴스 원문 데이터 가져오기
@@ -26,6 +28,38 @@ const NewsDetailPage = () => {
       .catch(() => setLoading(false));
   }, [newsId, level]);
   
+  // 배경지식 재생성 함수
+  const handleRegenerate = async () => {
+    if (isRegenerating) return;
+    
+    try {
+      setIsRegenerating(true);
+      const response = await fetch('http://localhost:5000/api/news/industry/regenerate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newsId, level })
+      });
+      
+      const result = await response.json();
+      
+      if (result && result.success) {
+        // 성공적으로 재생성되면 데이터를 새로고침
+        fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            setRawNews(data?.rawNews || null);
+            setGptNews(data?.gptNews || null);
+          })
+          .catch(err => console.error('데이터 갱신 실패:', err));
+      }
+    } catch (err) {
+      console.error('재생성 중 오류 발생:', err);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   // 데이터가 없으면 에러 처리
   if (!rawNews) {
@@ -39,12 +73,21 @@ const NewsDetailPage = () => {
   // 산업군 여부 판별
   const isIndustry = gptNews?.stock_type === "산업군";
 
+  const handleGoBack = () => {
+    const fromPage = location.state?.fromPage;
+    if (fromPage) {
+      navigate(`/news?page=${fromPage}`);
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <PageLayout>
       <div style={{ display: 'flex', gap: '24px' }}>
         {/* 왼쪽 영역: 뉴스 원본 데이터 */}
         <div style={{ flex: 3 }}>
-          <button onClick={() => navigate(-1)} style={{ marginTop: '10px', marginBottom: '16px' }}>
+          <button onClick={handleGoBack} style={{ marginTop: '10px', marginBottom: '16px' }}>
             ← 뒤로가기
           </button>
           <h2 style={{ color: '#2F2F2F', marginBottom: '8px' }}>{rawNews.title}</h2>
@@ -96,7 +139,26 @@ const NewsDetailPage = () => {
             <h4 style={{ margin: '4px 0' }}>전체 요약</h4>
             <p style={{ fontSize: '14px', color: '#333' }}>{gptNews?gptNews.full_summary:'요약 데이터 없음'}</p>
 
-            <h4 style={{ margin: '4px 0' }}>배경지식</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: '4px 0' }}>배경지식</h4>
+              {isIndustry && level === "중급" && (
+                <button 
+                  onClick={handleRegenerate}
+                  disabled={isRegenerating}
+                  style={{
+                    padding: '4px 8px',
+                    backgroundColor: isRegenerating ? '#ccc' : '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    cursor: isRegenerating ? 'default' : 'pointer'
+                  }}
+                >
+                  {isRegenerating ? '재생성 중...' : '재생성'}
+                </button>
+              )}
+            </div>
             {gptNews && gptNews.background ? (
               <div 
                 style={{ fontSize: '14px', color: '#333' }}

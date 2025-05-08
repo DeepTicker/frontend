@@ -65,7 +65,7 @@ const NewsPage = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div
               style={{ cursor: 'pointer', flex: 1 }}
-              onClick={() => navigate(`/news/${news.id}`)}
+              onClick={() => navigate(`/news/${news.id}`, { state: { fromPage: currentPage } })}
             >
               <h4 style={{ margin: '0 0 6px 0', color: '#2F2F2F' }}>{news.title}</h4>
               <p style={{ fontSize: '14px', color: '#555', margin: 0 }}>
