@@ -102,4 +102,42 @@
 .regenerate-button:disabled {
   background-color: #ccc;
   cursor: default;
-} 
+}
+
+/* 전반적(거시경제) 카테고리 특화 스타일 */
+.background-knowledge-container .macro-indicator {
+  display: inline-block;
+  margin: 5px 0;
+  padding: 3px 8px;
+  background-color: #f8f8f8;
+  border-left: 3px solid #3b82f6;
+  font-weight: 500;
+}
+
+.background-knowledge-container .macro-chart {
+  margin: 12px 0;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+}
+
+.background-knowledge-container .macro-trend {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.background-knowledge-container .macro-trend-up {
+  color: #ef4444;
+}
+
+.background-knowledge-container .macro-trend-down {
+  color: #3b82f6;
+}
+
+.background-knowledge-container .macro-trend-neutral {
+  color: #6b7280;
+}
+
+/* 추가된 스타일은 백엔드가 생성하는 HTML 구조에 맞게 조정이 필요할 수 있습니다 */ 

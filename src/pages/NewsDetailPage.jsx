@@ -68,7 +68,9 @@ const NewsDetailPage = () => {
         ? 'http://localhost:5000/api/news/industry/regenerate'
         : isTheme 
           ? 'http://localhost:5000/api/news/theme/regenerate'
-          : null;
+          : isMacro
+            ? 'http://localhost:5000/api/news/macro/regenerate'
+            : null;
           
       if (!endpoint) {
         throw new Error('지원하지 않는 카테고리입니다.');
@@ -213,8 +215,8 @@ const NewsDetailPage = () => {
             {/* 배경지식 섹션 */}
             <div className="background-section-header">
               <h4 className="section-title">배경지식</h4>
-              {/* 산업군 또는 테마 + 중급 레벨일 때 재생성 버튼 표시 */}
-              {(isIndustry || isTheme) && level === "중급" && (
+              {/* 산업군, 테마 또는 전반적 + 중급 레벨일 때 재생성 버튼 표시 */}
+              {(isIndustry || isTheme || isMacro) && level === "중급" && (
                 <button 
                   onClick={handleRegenerate}
                   disabled={isRegenerating}
