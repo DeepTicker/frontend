@@ -138,9 +138,25 @@ const NewsDetailPage = () => {
 
   const handleGoBack = () => {
     const fromPage = location.state?.fromPage;
-    if (fromPage) {
+    // localStorage에서도 페이지 정보 가져오기
+    const storedPage = localStorage.getItem('newsListPage');
+    
+    // 디버깅 로그 추가
+    console.log('뒤로가기 정보:', { 
+      fromPage, 
+      storedPage,
+      locationState: location.state 
+    });
+    
+    // 우선 location.state의 fromPage 확인, 그 다음 localStorage 확인
+    if (fromPage && !isNaN(fromPage) && fromPage > 0) {
       navigate(`/news?page=${fromPage}`);
-    } else {
+    } 
+    else if (storedPage && !isNaN(parseInt(storedPage)) && parseInt(storedPage) > 0) {
+      navigate(`/news?page=${parseInt(storedPage)}`);
+    }
+    else {
+      // 유효한 페이지 정보가 없으면 히스토리 기반 뒤로가기
       navigate(-1);
     }
   };

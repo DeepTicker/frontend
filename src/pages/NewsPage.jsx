@@ -17,6 +17,7 @@ const NewsPage = () => {
   // ✅ 페이지 정보 URL에서 받아오기
   useEffect(() => {
     const pageFromUrl = parseInt(searchParams.get("page")) || 1;
+    console.log('페이지 파라미터 감지:', { pageFromUrl, searchParams: Object.fromEntries([...searchParams]) });
     setCurrentPage(pageFromUrl);
   }, [searchParams]);
 
@@ -57,7 +58,16 @@ const NewsPage = () => {
           <div className="news-item-content">
             <div
               className="news-item-info"
-              onClick={() => navigate(`/news/${news.id}`, { state: { fromPage: currentPage } })}
+              onClick={() => {
+                console.log('뉴스 클릭:', { newsId: news.id, currentPage });
+                // localStorage에도 현재 페이지 저장
+                localStorage.setItem('newsListPage', currentPage);
+                navigate(`/news/${news.id}`, { 
+                  state: { 
+                    fromPage: currentPage
+                  } 
+                });
+              }}
             >
               <h4 className="news-item-title">{news.title}</h4>
               <p className="news-item-meta">
