@@ -70,7 +70,9 @@ const NewsDetailPage = () => {
           ? 'http://localhost:5000/api/news/theme/regenerate'
           : isMacro
             ? 'http://localhost:5000/api/news/macro/regenerate'
-            : null;
+            : isStock
+              ? 'http://localhost:5000/api/news/stock/regenerate'
+              : null;
           
       if (!endpoint) {
         throw new Error('지원하지 않는 카테고리입니다.');
@@ -86,7 +88,8 @@ const NewsDetailPage = () => {
           newsId, 
           level,
           news_id: newsId,
-          representative: rawNews.representative // 대표 정보도 전달
+          representative: rawNews.representative, // 대표 정보도 전달
+          stockCode: isStock ? rawNews.representative : null // 개별주식인 경우 주식 코드 전달
         })
       });
       
@@ -215,8 +218,8 @@ const NewsDetailPage = () => {
             {/* 배경지식 섹션 */}
             <div className="background-section-header">
               <h4 className="section-title">배경지식</h4>
-              {/* 산업군, 테마 또는 전반적 + 중급 레벨일 때 재생성 버튼 표시 */}
-              {(isIndustry || isTheme || isMacro) && level === "중급" && (
+              {/* 산업군, 테마, 전반적 또는 개별주식 + 중급 레벨일 때 재생성 버튼 표시 */}
+              {(isIndustry || isTheme || isMacro || isStock) && level === "중급" && (
                 <button 
                   onClick={handleRegenerate}
                   disabled={isRegenerating}

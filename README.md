@@ -68,3 +68,39 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## 개별주식 중급 API 기능 추가
+
+### 추가된 기능
+- 개별주식 이슈에 대한 중급 레벨 분석 데이터 조회 및 재생성 기능
+- 개별주식 상세 페이지에 중급 레벨 분석 데이터 표시
+- 재생성 API 연동
+
+### 개발 환경 설정
+1. 의존성 설치
+```
+npm install
+```
+
+2. 목 API 서버 실행
+```
+npm run mock-server
+```
+
+3. 리액트 앱 실행 (별도 터미널에서)
+```
+npm start
+```
+
+### 개별주식 API 엔드포인트
+- GET `/api/stocks/:stockCode/issues` - 특정 주식의 이슈 조회
+- POST `/api/stock/regenerate` - 개별주식 이슈 재생성
+
+### 사용 예시
+```javascript
+// 개별주식 이슈 조회
+const stockIssuesResult = await getStockIssues(stockCode);
+
+// 개별주식 이슈 재생성
+const result = await regenerateStockIssues(stockCode, level);
+```
