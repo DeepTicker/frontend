@@ -29,7 +29,7 @@ export default function StockTable() {
               <th className="border-b px-4 py-2 text-left">종목명</th>
               <th className="border-b px-4 py-2 text-left">현재가</th>
               <th className="border-b px-4 py-2 text-left">등락률 (%)</th>
-              <th className="border-b px-4 py-2 text-left">시가총액 (억)</th>
+              <th className="border-b px-4 py-2 text-left">시가총액</th>
               <th className="border-b px-4 py-2 text-left">거래량</th>
             </tr>
           </thead>
