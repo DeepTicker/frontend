@@ -17,14 +17,26 @@ const NewsPreview = () => {
     fetchMainNews();
   }, []);
 
+  // Format date to YYYY-MM-DD
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return dateString.substring(0, 10);
+  };
+
   return (
     <ul className="news-list">
       {newsList.map((news) => (
         <li key={news.id} className="news-item">
           <h4 className="news-title">{news.title}</h4>
           <div className="news-meta">
-            <span className="news-category">{news.category}</span>
-            <span>대표: {news.representative || '없음'}</span>
+            <div className="news-meta-left">
+              <span className="news-category">{news.category}</span>
+              <span>{news.representative || ''}</span>
+            </div>
+            <div className="news-details">
+              <span className="news-press">{news.press}</span>
+              <span className="news-date">{formatDate(news.date)}</span>
+            </div>
           </div>
         </li>
       ))}
