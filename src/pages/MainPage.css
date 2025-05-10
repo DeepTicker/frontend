@@ -1,0 +1,126 @@
+/* MainPage.css */
+/* Using a clean color palette with 3 colors: 
+   - Primary: #3498db (blue) 
+   - Secondary: #2c3e50 (dark blue/slate)
+   - Background: #f8f9fa (light gray)
+*/
+
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.section-container {
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.section-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  padding: 1.25rem 1.5rem;
+  background-color: #3498db;
+  color: white;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.section-body {
+  padding: 1.5rem;
+}
+
+/* News list styling */
+.news-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.news-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.news-title {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.news-meta {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.news-category {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+/* Stock list styling */
+.stock-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.stock-item {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: background-color 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stock-item:hover {
+  background-color: rgba(52, 152, 219, 0.05);
+}
+
+.stock-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.stock-price {
+  color: #3498db;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-container {
+    padding: 1rem;
+  }
+  
+  .stock-list {
+    grid-template-columns: 1fr;
+  }
+} 

@@ -1,0 +1,43 @@
+/* Navbar.css */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between; /* 제목 왼쪽, 버튼 오른쪽 */
+    align-items: center;
+    background-color: #f2f2f2;
+    padding: 10px 1.5rem;
+    z-index: 10;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .navbar-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c3e50;
+    cursor: pointer;
+  }
+  
+  .navbar-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .navbar button {
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .navbar button:hover {
+    background-color: #ddd;
+    border-radius: 4px;
+  }
+  

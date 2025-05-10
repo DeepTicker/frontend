@@ -18,19 +18,17 @@ const NewsPreview = () => {
   }, []);
 
   return (
-    <section style={{ marginBottom: '20px' }}>
-      <h2>최근 뉴스</h2>
-      <ul style={{ listStyleType: 'none', padding: 0 }}>
-        {newsList.map((news) => (
-          <li key={news.id} style={{ marginBottom: '12px' }}>
-            <h4 style={{ margin: '0 0 4px 0', color: '#2F2F2F' }}>{news.title}</h4>
-            <p style={{ fontSize: '14px', color: '#555', margin: 0 }}>
-              분류: {news.category} | 대표: {news.representative || '없음'}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <ul className="news-list">
+      {newsList.map((news) => (
+        <li key={news.id} className="news-item">
+          <h4 className="news-title">{news.title}</h4>
+          <div className="news-meta">
+            <span className="news-category">{news.category}</span>
+            <span>대표: {news.representative || '없음'}</span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 };
 
