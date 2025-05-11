@@ -1,10 +1,9 @@
-// pages/NewsDetailPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import BackgroundKnowledge from '../components/BackgroundKnowledge';
-import '../components/BackgroundKnowledge.css'; // 배경지식 컴포넌트 CSS
-import './NewsDetailPage.css'; // 뉴스 페이지 CSS
+import '../components/BackgroundKnowledge.css';
+import './NewsDetailPage.css';
 
 const NewsDetailPage = () => {
   const { id } = useParams();
@@ -25,28 +24,50 @@ const NewsDetailPage = () => {
   const [isStock, setIsStock] = useState(false);
   const [isElse, setIsElse] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [newsList, setNewsList] = useState([]);
+  const [totalNews, setTotalNews] = useState(0);
+  const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
+
+  // makeKey 함수 수정
+  const makeKey = (category, representative) => {
+    const key = `${category}_${representative}`
+      .replace(/[^\w\s가-힣]/g, '') // 특수문자 제거
+      .replace(/\s+/g, '') // 공백 제거
+      .slice(0, 15); // 15자로 제한
+    
+    console.log('키 생성 과정:', {
+      원본: `${category}_${representative}`,
+      최종키: key
+    });
+    
+    return key;
+  };
+
   // 뉴스 원문 데이터 가져오기
   useEffect(() => {
     setLoading(true);
     fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        setRawNews(data?.rawNews || null);
-        setGptNews(data?.gptNews || null);
+        setRawNews({
+          ...data?.rawNews,
+          classifications: Array.isArray(data?.rawNews?.classifications)
+            ? data.rawNews.classifications
+            : [],
+        });
+        // summaries를 gptNews로 설정
+        setGptNews({ summaries: data?.summaries || {} });
         
-        // 카테고리에 따른 상태 설정
-        if (data?.rawNews?.category) {
-          const category = data.rawNews.category;
+        if (data?.rawNews?.classifications?.[0]?.category) {
+          const category = data.rawNews.classifications[0].category;
           setIsIndustry(category === '산업군');
           setIsTheme(category === '테마');
           setIsMacro(category === '전반적');
           setIsStock(category === '개별주');
           setIsElse(category === '그 외');
-          
-          console.log('카테고리:', category);
-          console.log('대표:', data.rawNews.representative);
         }
-        
+      
         setLoading(false);
       })
       .catch((err) => {
@@ -88,8 +109,8 @@ const NewsDetailPage = () => {
           newsId, 
           level,
           news_id: newsId,
-          representative: rawNews.representative, // 대표 정보도 전달
-          stockCode: isStock ? rawNews.representative : null // 개별주식인 경우 주식 코드 전달
+          representative: rawNews.representative,
+          stockCode: isStock ? rawNews.representative : null
         })
       });
       
@@ -111,7 +132,7 @@ const NewsDetailPage = () => {
           .then(data => {
             console.log('새로운 데이터:', data);
             setRawNews(data?.rawNews || null);
-            setGptNews(data?.gptNews || null);
+            setGptNews({ summaries: data?.summaries || {} });
             alert('배경지식이 재생성되었습니다.');
           })
           .catch(err => {
@@ -127,6 +148,70 @@ const NewsDetailPage = () => {
     } finally {
       setIsRegenerating(false);
     }
+  };
+
+  // 배경지식 슬라이드 관련 함수들
+  const handlePrevBackground = () => {
+    setCurrentBackgroundIndex(prev => 
+      prev === 0 ? rawNews.classifications.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextBackground = () => {
+    setCurrentBackgroundIndex(prev => 
+      prev === rawNews.classifications.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  // getCurrentBackground 함수 수정
+  const getCurrentBackground = () => {
+    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    
+    const currentClassification = rawNews.classifications[currentBackgroundIndex];
+    const key = makeKey(currentClassification.category, currentClassification.representative);
+    console.log('배경지식 접근 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
+    console.log('현재 선택된 키:', key);
+    return gptNews.summaries[key]?.background;
+  };
+
+  // getAllBackgrounds 함수 수정
+  const getAllBackgrounds = () => {
+    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    
+    console.log('전체 배경지식 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
+    return rawNews.classifications.map(classification => {
+      const key = makeKey(classification.category, classification.representative);
+      console.log('각 분류별 키:', key);
+      return gptNews.summaries[key]?.background;
+    }).filter(Boolean).join('<hr/>');
+  };
+
+  // getCurrentSummary 함수 수정
+  const getCurrentSummary = () => {
+    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    
+    const currentClassification = rawNews.classifications[currentBackgroundIndex];
+    const key = makeKey(currentClassification.category, currentClassification.representative);
+    console.log('요약 접근 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
+    console.log('현재 선택된 키:', key);
+    return gptNews.summaries[key];
+  };
+
+  // getAllSummaries 함수 수정
+  const getAllSummaries = () => {
+    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    
+    console.log('전체 요약 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
+    return rawNews.classifications.map(classification => {
+      const key = makeKey(classification.category, classification.representative);
+      console.log('각 분류별 키:', key);
+      const summary = gptNews.summaries[key];
+      return {
+        category: classification.category,
+        one_line_summary: summary?.one_line_summary,
+        full_summary: summary?.full_summary
+      };
+    }).filter(Boolean);
   };
 
   // 데이터가 없으면 에러 처리
@@ -175,24 +260,32 @@ const NewsDetailPage = () => {
             ← 뒤로가기
           </button>
           <h2 className="news-title">{rawNews.title}</h2>
-          <p className="news-meta">
-            {rawNews.press} | {rawNews.reporter} | {new Date(rawNews.date).toLocaleDateString()}
-          </p>
-          
-          {/* 카테고리 및 대표 정보 표시 */}
-          {rawNews.category && (
-            <div className="news-category-tag">
-              <span className="news-category-label">분류: {rawNews.category}</span>
-              {rawNews.category !== '그 외' && rawNews.representative && (
-                <span className="news-representative">| 대표: {rawNews.representative}</span>
-              )}
+          <div className="news-meta">
+            <div className="news-meta-left">
+              {rawNews.classifications.map((classification, index) => (
+                <React.Fragment key={index}>
+                  <span className="news-category">{classification.category}</span>
+                  {classification.representative && (
+                    <span className="news-representative">
+                      {classification.representative}
+                    </span>
+                  )}
+                  {index < rawNews.classifications.length - 1 && (
+                    <span className="news-separator">|</span>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
-          )}
+            <div className="news-details">
+              <span className="news-press">{rawNews.press}</span>
+              <span className="news-date">{new Date(rawNews.date).toLocaleDateString()}</span>
+            </div>
+          </div>
           
           <p className="news-content-text">{rawNews.content}</p>
         </div>
 
-        {/* 오른쪽 영역: GPT 처리 데이터 (요약, 배경, 상승/하락 주식) */}
+        {/* 오른쪽 영역: GPT 처리 데이터 */}
         <div className="news-analysis-section">
           {/* 난이도 선택 버튼 */}
           <div className="level-selector">
@@ -210,15 +303,40 @@ const NewsDetailPage = () => {
           {/* 기사 요약과 배경지식 */}
           <div className="summary-section">
             <h4 className="section-title">한줄 요약</h4>
-            <p className="summary-text">{gptNews?gptNews.one_line_summary:'요약 데이터 없음'}</p>
+            {level === "초급" ? (
+              <div className="summary-list">
+                {getAllSummaries()?.map((summary, index) => (
+                  <div key={index} className="summary-item">
+                    <span className="summary-category">{summary.category}</span>
+                    <p className="summary-text">{summary.one_line_summary || '요약 데이터 없음'}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="summary-text">
+                {getCurrentSummary()?.one_line_summary || '요약 데이터 없음'}
+              </p>
+            )}
 
             <h4 className="section-title">전체 요약</h4>
-            <p className="summary-text">{gptNews?gptNews.full_summary:'요약 데이터 없음'}</p>
+            {level === "초급" ? (
+              <div className="summary-list">
+                {getAllSummaries()?.map((summary, index) => (
+                  <div key={index} className="summary-item">
+                    <span className="summary-category">{summary.category}</span>
+                    <p className="summary-text">{summary.full_summary || '요약 데이터 없음'}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="summary-text">
+                {getCurrentSummary()?.full_summary || '요약 데이터 없음'}
+              </p>
+            )}
 
             {/* 배경지식 섹션 */}
             <div className="background-section-header">
               <h4 className="section-title">배경지식</h4>
-              {/* 산업군, 테마, 전반적 또는 개별주식 + 중급 레벨일 때 재생성 버튼 표시 */}
               {(isIndustry || isTheme || isMacro || isStock) && level === "중급" && (
                 <button 
                   onClick={handleRegenerate}
@@ -230,12 +348,35 @@ const NewsDetailPage = () => {
               )}
             </div>
             <div className="background-knowledge-wrapper">
-              {gptNews && gptNews.background ? (
-                <BackgroundKnowledge background={gptNews.background} />
+              {level === "초급" ? (
+                <BackgroundKnowledge background={getAllBackgrounds()} />
               ) : (
-                <p>
-                  배경지식 데이터가 없습니다.
-                </p>
+                <div className="background-slider">
+                  <button 
+                    className="slider-button prev"
+                    onClick={handlePrevBackground}
+                    disabled={rawNews.classifications.length <= 1}
+                  >
+                    &lt;
+                  </button>
+                  <div className="background-content">
+                    <BackgroundKnowledge 
+                      background={getCurrentBackground()} 
+                    />
+                    {rawNews.classifications.length > 1 && (
+                      <div className="background-pagination">
+                        {currentBackgroundIndex + 1} / {rawNews.classifications.length}
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    className="slider-button next"
+                    onClick={handleNextBackground}
+                    disabled={rawNews.classifications.length <= 1}
+                  >
+                    &gt;
+                  </button>
+                </div>
               )}
             </div>
           </div>

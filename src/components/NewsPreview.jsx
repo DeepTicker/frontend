@@ -30,8 +30,19 @@ const NewsPreview = () => {
           <h4 className="news-title">{news.title}</h4>
           <div className="news-meta">
             <div className="news-meta-left">
-              <span className="news-category">{news.category}</span>
-              <span>{news.representative || ''}</span>
+              {news.classifications.map((classification, index) => (
+                <React.Fragment key={index}>
+                  <span className="news-category">{classification.category}</span>
+                  {classification.representative && (
+                    <span className="news-representative">
+                      {classification.representative}
+                    </span>
+                  )}
+                  {index < news.classifications.length - 1 && (
+                    <span className="news-separator">|</span>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
             <div className="news-details">
               <span className="news-press">{news.press}</span>

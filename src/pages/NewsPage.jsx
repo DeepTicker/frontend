@@ -70,9 +70,27 @@ const NewsPage = () => {
               }}
             >
               <h4 className="news-item-title">{news.title}</h4>
-              <p className="news-item-meta">
-                분류: {news.category} | 대표: {news.representative || '없음'}
-              </p>
+              <div className="news-meta">
+                <div className="news-meta-left">
+                  {news.classifications.map((classification, index) => (
+                    <React.Fragment key={index}>
+                      <span className="news-category">{classification.category}</span>
+                      {classification.representative && (
+                        <span className="news-representative">
+                          {classification.representative}
+                        </span>
+                      )}
+                      {index < news.classifications.length - 1 && (
+                        <span className="news-separator">|</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+                <div className="news-details">
+                  <span className="news-press">{news.press}</span>
+                  <span className="news-date">{new Date(news.date).toLocaleDateString()}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
