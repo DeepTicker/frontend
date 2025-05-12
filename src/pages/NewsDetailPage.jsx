@@ -29,35 +29,26 @@ const NewsDetailPage = () => {
   const [totalNews, setTotalNews] = useState(0);
   const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
 
-  // makeKey 함수 수정
-  const makeKey = (category, representative) => {
-    const key = `${category}_${representative}`
-      .replace(/[^\w\s가-힣]/g, '') // 특수문자 제거
-      .replace(/\s+/g, '') // 공백 제거
-      .slice(0, 15); // 15자로 제한
-    
-    console.log('키 생성 과정:', {
-      원본: `${category}_${representative}`,
-      최종키: key
-    });
-    
-    return key;
-  };
-
   // 뉴스 원문 데이터 가져오기
   useEffect(() => {
     setLoading(true);
     fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
+        console.log('받은 데이터:', data); // 디버깅용 로그 추가
+        
         setRawNews({
           ...data?.rawNews,
           classifications: Array.isArray(data?.rawNews?.classifications)
             ? data.rawNews.classifications
             : [],
         });
-        // summaries를 gptNews로 설정
-        setGptNews({ summaries: data?.summaries || {} });
+        
+        // summary와 backgrounds를 gptNews로 설정
+        setGptNews({
+          summary: data?.summary || null,
+          backgrounds: Array.isArray(data?.backgrounds) ? data.backgrounds : []
+        });
         
         if (data?.rawNews?.classifications?.[0]?.category) {
           const category = data.rawNews.classifications[0].category;
@@ -82,16 +73,24 @@ const NewsDetailPage = () => {
     
     try {
       setIsRegenerating(true);
-      console.log('재생성 요청 시작:', { newsId, level, category: rawNews.category });
+      const currentClassification = rawNews.classifications[currentBackgroundIndex];
+      console.log('재생성 요청 시작:', { 
+        newsId, 
+        level, 
+        category: currentClassification.category,
+        representative: currentClassification.representative,
+        stock_code: currentClassification.stock_code,
+        theme_name: currentClassification.theme_name
+      });
       
-      // 카테고리에 따라 API 엔드포인트 설정
-      const endpoint = isIndustry 
+      // 현재 선택된 카테고리에 따라 API 엔드포인트 설정
+      const endpoint = currentClassification.category === '산업군'
         ? 'http://localhost:5000/api/news/industry/regenerate'
-        : isTheme 
+        : currentClassification.category === '테마'
           ? 'http://localhost:5000/api/news/theme/regenerate'
-          : isMacro
+          : currentClassification.category === '전반적'
             ? 'http://localhost:5000/api/news/macro/regenerate'
-            : isStock
+            : currentClassification.category === '개별주'
               ? 'http://localhost:5000/api/news/stock/regenerate'
               : null;
           
@@ -109,8 +108,9 @@ const NewsDetailPage = () => {
           newsId, 
           level,
           news_id: newsId,
-          representative: rawNews.representative,
-          stockCode: isStock ? rawNews.representative : null
+          representative: currentClassification.representative,
+          stockCode: currentClassification.category === '개별주' ? currentClassification.stock_code : null,
+          themeName: currentClassification.category === '테마' ? currentClassification.theme_name : null
         })
       });
       
@@ -132,7 +132,10 @@ const NewsDetailPage = () => {
           .then(data => {
             console.log('새로운 데이터:', data);
             setRawNews(data?.rawNews || null);
-            setGptNews({ summaries: data?.summaries || {} });
+            setGptNews({
+              summary: data?.summary || null,
+              backgrounds: data?.backgrounds || []
+            });
             alert('배경지식이 재생성되었습니다.');
           })
           .catch(err => {
@@ -165,53 +168,57 @@ const NewsDetailPage = () => {
 
   // getCurrentBackground 함수 수정
   const getCurrentBackground = () => {
-    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    if (!rawNews?.classifications || !gptNews?.backgrounds) {
+      console.log('배경지식 데이터 없음:', { 
+        classifications: rawNews?.classifications,
+        backgrounds: gptNews?.backgrounds 
+      });
+      return null;
+    }
     
     const currentClassification = rawNews.classifications[currentBackgroundIndex];
-    const key = makeKey(currentClassification.category, currentClassification.representative);
-    console.log('배경지식 접근 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
-    console.log('현재 선택된 키:', key);
-    return gptNews.summaries[key]?.background;
+    console.log('현재 분류:', currentClassification);
+    
+    // 카테고리와 대표어가 일치하는 배경지식 찾기
+    const background = gptNews.backgrounds.find(
+      bg => bg.category === currentClassification.category && 
+           bg.representative === currentClassification.representative
+    );
+    
+    console.log('찾은 배경지식:', background);
+    return background?.background || null;
   };
 
   // getAllBackgrounds 함수 수정
   const getAllBackgrounds = () => {
-    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    if (!rawNews?.classifications || !gptNews?.backgrounds) {
+      console.log('배경지식 데이터 없음');
+      return null;
+    }
     
-    console.log('전체 배경지식 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
-    return rawNews.classifications.map(classification => {
-      const key = makeKey(classification.category, classification.representative);
-      console.log('각 분류별 키:', key);
-      return gptNews.summaries[key]?.background;
-    }).filter(Boolean).join('<hr/>');
+    // 모든 배경지식을 HTML로 결합
+    const backgrounds = gptNews.backgrounds
+      .map(bg => bg.background)
+      .filter(Boolean);
+    
+    console.log('모든 배경지식:', backgrounds);
+    return backgrounds.join('<hr/>');
   };
 
   // getCurrentSummary 함수 수정
   const getCurrentSummary = () => {
-    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
-    
-    const currentClassification = rawNews.classifications[currentBackgroundIndex];
-    const key = makeKey(currentClassification.category, currentClassification.representative);
-    console.log('요약 접근 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
-    console.log('현재 선택된 키:', key);
-    return gptNews.summaries[key];
+    return gptNews?.summary || null;
   };
 
   // getAllSummaries 함수 수정
   const getAllSummaries = () => {
-    if (!rawNews || !rawNews.classifications || !gptNews?.summaries) return null;
+    if (!gptNews?.summary) return null;
     
-    console.log('전체 요약 - 사용 가능한 키들:', Object.keys(gptNews.summaries));
-    return rawNews.classifications.map(classification => {
-      const key = makeKey(classification.category, classification.representative);
-      console.log('각 분류별 키:', key);
-      const summary = gptNews.summaries[key];
-      return {
-        category: classification.category,
-        one_line_summary: summary?.one_line_summary,
-        full_summary: summary?.full_summary
-      };
-    }).filter(Boolean);
+    return [{
+      category: '전체',
+      one_line_summary: gptNews.summary.one_line_summary,
+      full_summary: gptNews.summary.full_summary
+    }];
   };
 
   // 데이터가 없으면 에러 처리
@@ -223,22 +230,16 @@ const NewsDetailPage = () => {
     );
   }
   
-  console.log('산업군 여부 최종 확인:', isIndustry, '레벨:', level);
-  console.log('배경지식 내용 존재 여부:', Boolean(gptNews?.background));
-
   const handleGoBack = () => {
     const fromPage = location.state?.fromPage;
-    // localStorage에서도 페이지 정보 가져오기
     const storedPage = localStorage.getItem('newsListPage');
     
-    // 디버깅 로그 추가
     console.log('뒤로가기 정보:', { 
       fromPage, 
       storedPage,
       locationState: location.state 
     });
     
-    // 우선 location.state의 fromPage 확인, 그 다음 localStorage 확인
     if (fromPage && !isNaN(fromPage) && fromPage > 0) {
       navigate(`/news?page=${fromPage}`);
     } 
@@ -246,7 +247,6 @@ const NewsDetailPage = () => {
       navigate(`/news?page=${parseInt(storedPage)}`);
     }
     else {
-      // 유효한 페이지 정보가 없으면 히스토리 기반 뒤로가기
       navigate(-1);
     }
   };
@@ -307,7 +307,6 @@ const NewsDetailPage = () => {
               <div className="summary-list">
                 {getAllSummaries()?.map((summary, index) => (
                   <div key={index} className="summary-item">
-                    <span className="summary-category">{summary.category}</span>
                     <p className="summary-text">{summary.one_line_summary || '요약 데이터 없음'}</p>
                   </div>
                 ))}
@@ -323,7 +322,6 @@ const NewsDetailPage = () => {
               <div className="summary-list">
                 {getAllSummaries()?.map((summary, index) => (
                   <div key={index} className="summary-item">
-                    <span className="summary-category">{summary.category}</span>
                     <p className="summary-text">{summary.full_summary || '요약 데이터 없음'}</p>
                   </div>
                 ))}
@@ -337,15 +335,6 @@ const NewsDetailPage = () => {
             {/* 배경지식 섹션 */}
             <div className="background-section-header">
               <h4 className="section-title">배경지식</h4>
-              {(isIndustry || isTheme || isMacro || isStock) && level === "중급" && (
-                <button 
-                  onClick={handleRegenerate}
-                  disabled={isRegenerating}
-                  className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
-                >
-                  {isRegenerating ? '재생성 중...' : '재생성'}
-                </button>
-              )}
             </div>
             <div className="background-knowledge-wrapper">
               {level === "초급" ? (
@@ -367,6 +356,17 @@ const NewsDetailPage = () => {
                       <div className="background-pagination">
                         {currentBackgroundIndex + 1} / {rawNews.classifications.length}
                       </div>
+                    )}
+                    {/* 현재 카테고리가 지원되는 카테고리이고 중급 레벨일 때만 재생성 버튼 표시 */}
+                    {['산업군', '테마', '전반적', '개별주'].includes(rawNews.classifications[currentBackgroundIndex]?.category) && 
+                     level === "중급" && (
+                      <button 
+                        onClick={handleRegenerate}
+                        disabled={isRegenerating}
+                        className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
+                      >
+                        {isRegenerating ? '재생성 중...' : '재생성'}
+                      </button>
                     )}
                   </div>
                   <button 
@@ -429,4 +429,4 @@ const NewsDetailPage = () => {
   );
 };
 
-export default NewsDetailPage;
+export default NewsDetailPage; 

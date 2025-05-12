@@ -25,7 +25,7 @@ const NewsPreview = () => {
 
   return (
     <ul className="news-list">
-      {newsList.map((news) => (
+      {newsList?.map((news) => (
         <li key={news.id} className="news-item">
           <h4 className="news-title">{news.title}</h4>
           <div className="news-meta">
