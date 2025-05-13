@@ -23,9 +23,18 @@
   .navbar-buttons {
     display: flex;
     gap: 10px;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    margin-right: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
   
-  .navbar button {
+  /* .navbar button {
     background: transparent;
     border: none;
     padding: 8px 12px;
@@ -34,7 +43,7 @@
     color: #333;
     cursor: pointer;
     transition: background-color 0.2s;
-  }
+  } */
   
   .navbar button:hover {
     background-color: #ddd;

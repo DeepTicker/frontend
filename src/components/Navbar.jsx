@@ -15,7 +15,7 @@ const Navbar = () => {
         <button onClick={() => navigate('/')}>Home</button>
         <button onClick={() => navigate('/news')}>News</button>
         <button onClick={() => navigate('/stocks')}>Stocks</button>
-        <button onClick={() => navigate('/chatbot')}>Chatbot</button>
+        {/* <button onClick={() => navigate('/chatbot')}>Chatbot</button> */}
       </div>
     </nav>
   );
