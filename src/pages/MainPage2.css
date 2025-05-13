@@ -1,6 +1,6 @@
 .stock-container {
   width: 100%;
-  height: 150vh;  /* 전체 화면의 100% 높이 */
+  height: auto;  /* 전체 화면의 100% 높이 */
   display: flex;
   justify-content: center;  /* 가로 중앙 정렬 */
   align-items: flex-start;  /* 세로 상단 정렬 */

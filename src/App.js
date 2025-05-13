@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // 페이지 컴포넌트
-import MainPage from './pages/MainPage';
+import MainPage from './pages/MainPage2';
 import NewsPage from './pages/NewsPage';
 import StockPage from './pages/StockPage';
 import ChatbotPage from './pages/ChatbotPage';

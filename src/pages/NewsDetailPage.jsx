@@ -259,7 +259,7 @@ const NewsDetailPage = () => {
           <button onClick={handleGoBack} className="back-button">
             ← 뒤로가기
           </button>
-          <h2 className="news-title">{rawNews.title}</h2>
+          <h2 className="news-detail-title">{rawNews.title}</h2>
           <div className="news-meta">
             <div className="news-meta-left">
               {rawNews.classifications.map((classification, index) => (
@@ -392,7 +392,7 @@ const NewsDetailPage = () => {
           {/* 상승/하락 주식 (오른쪽 영역 하단) */}
           <div className="stock-section">
             <h4 className="section-title">긍정/부정 주식</h4>
-            <div className="stock-list">
+            <div className="news-detail-stock-list">
               {(gptNews?.positive_stocks||[]).map((stock) =>
                 isIndustry ? (
                   <div

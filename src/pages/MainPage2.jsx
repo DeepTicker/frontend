@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './MainPage2.css';
+import './MainPage.css';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -15,6 +16,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import { Pagination } from 'swiper/modules';
 import 'swiper/css/pagination';
+import NewsPreview from '../components/NewsPreview';
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
@@ -119,54 +121,65 @@ const MainPage2 = () => {
   };
 
   return (
-    <div className="stock-container">      
-      {/* <h1 className="page-title">DeepTicker</h1> */}
-      <Swiper
-        spaceBetween={50}
-        slidesPerView={1}
-        pagination={{ clickable: true }}
-        modules={[Pagination]}
-        onSlideChange={handleSlideChange}
-      >
-        {chartDataList.map((item, index) => (
-          <SwiperSlide key={index}>
-            <div className="slide-content">   
-              <div className="slide-header">
-                <h2>Today's Highest Trading Volume</h2>
-              </div>           
-              {/* <div className="slide-header">
-                <p className="volume-info">
-                  Today's Highest Trading Volume<br />
-                  Top {index + 1} - {item.name} ({formatVolume(item.volume)}건)
-                </p>
-              </div>            */}
-              <div className="left-pane">
-                <h2 className="volume-info">
-                  {/* Today's Highest Trading Volume<br /> */}
-                  {index + 1}. {item.name} <br />
-                  ({formatVolume(item.volume)}건)
-                </h2>
-                {/* <h2>{item.name} 정보</h2> */}
-                <p>{item.name}에 대한 자세한 설명 또는 개요를 여기에 작성할 수 있습니다.</p>
-                <p>{item.geminiDescription}</p>
-              </div>
-              <div className="right-pane">
-                <div className="chart-header">
-                  {/* <h2>주가 그래프 </h2> */}
-                  {/* <h3 className="volume-info">{formatVolume(item.volume)}건</h3> */}
+    <div>
+
+      <div className="stock-container">      
+        {/* <h1 className="page-title">DeepTicker</h1> */}
+        <Swiper
+          spaceBetween={50}
+          slidesPerView={1}
+          pagination={{ clickable: true }}
+          modules={[Pagination]}
+          onSlideChange={handleSlideChange}
+        >
+          {chartDataList.map((item, index) => (
+            <SwiperSlide key={index}>
+              <div className="slide-content">   
+                <div className="slide-header">
+                  <h2>Today's Highest Trading Volume</h2>
+                </div>           
+                {/* <div className="slide-header">
+                  <p className="volume-info">
+                    Today's Highest Trading Volume<br />
+                    Top {index + 1} - {item.name} ({formatVolume(item.volume)}건)
+                  </p>
+                </div>            */}
+                <div className="left-pane">
+                  <h2 className="volume-info">
+                    {/* Today's Highest Trading Volume<br /> */}
+                    {index + 1}. {item.name} <br />
+                    ({formatVolume(item.volume)}건)
+                  </h2>
+                  {/* <h2>{item.name} 정보</h2> */}
+                  <p>{item.name}에 대한 자세한 설명 또는 개요를 여기에 작성할 수 있습니다.</p>
+                  <p>{item.geminiDescription}</p>
                 </div>
-                <div className="chart-wrapper">
-                  <Line
-                    data={item.chartData}
-                    options={{ responsive: true, maintainAspectRatio: false }}
-                  />
+                <div className="right-pane">
+                  <div className="chart-header">
+                    {/* <h2>주가 그래프 </h2> */}
+                    {/* <h3 className="volume-info">{formatVolume(item.volume)}건</h3> */}
+                  </div>
+                  <div className="chart-wrapper">
+                    <Line
+                      data={item.chartData}
+                      options={{ responsive: true, maintainAspectRatio: false }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+
+      </div>
+      {/* 뉴스 섹션 */}{/* 🔽 뉴스 섹션 - 슬라이드 아래에 위치 */}
+      <div className="news-container">
+        <h2 className="news-header-title">최근 뉴스</h2>
+        <div className="news-body">
+          <NewsPreview />
+        </div>
+      </div>
+  </div>
   );
 };
 

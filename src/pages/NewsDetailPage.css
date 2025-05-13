@@ -21,7 +21,7 @@
   cursor: pointer;
 }
 
-.news-title {
+.news-detail-title {
   color: #2F2F2F;
   margin-bottom: 8px;
   font-size: 1.5rem;
@@ -128,7 +128,7 @@
   margin-top: 10px;
 }
 
-.stock-list {
+.news-detail-stock-list {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;

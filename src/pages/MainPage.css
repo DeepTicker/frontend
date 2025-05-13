@@ -1,53 +1,21 @@
-/* MainPage.css */
-/* Color palette:
-   - Primary: #3498db (밝은 파란색, 강조 색)
-   - Secondary: #2c3e50 (진한 네이비, 본문 텍스트용)
-   - Background: #f8f9fa (밝은 회색 배경)
-*/
-
-/* 메인 페이지 전체 레이아웃 */
-.main-container {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-
-/* 섹션들을 세로로 나열 */
-.main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* 각 섹션 박스 컨테이너 */
-.section-container {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.news-container {
+  width: 80%;
+  margin: 0 auto; /* 가운데 정렬 */
+  height: auto;
   overflow: hidden;
 }
 
-/* 섹션 상단 제목 영역 */
-.section-header {
-  padding: 0.8rem 1rem;
-  background-color: #3498db;
-  color: white;
-}
-
-/* 섹션 제목 텍스트 */
-.section-title {
-  margin: 0;
-  font-size: 1rem;
+.news-header-title {
+  margin: 10;
+  font-size: 1.5rem;
   font-weight: 600;
+  padding-left: 40px;
 }
 
-/* 섹션 본문 영역 */
-.section-body {
-  padding: 1rem;
+.news-body {
+  padding: 0.5rem 2.5rem 2.5rem 2.5rem;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
 }
 
 /* ===== 뉴스 목록 스타일 ===== */
@@ -111,65 +79,3 @@
   font-size: 0.65rem;
   color: #6c757d;
 }
-
-/* ===== 주식 목록 스타일 ===== */
-.stock-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.8rem;
-}
-
-.stock-item {
-  padding: 0.7rem;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.2s;
-}
-
-.stock-item:hover {
-  background-color: rgba(52, 152, 219, 0.05);
-}
-
-.stock-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.stock-price {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #3498db;
-}
-
-/* ===== 반응형 레이아웃 ===== */
-@media (max-width: 768px) {
-  .main-container {
-    padding: 0.5rem;
-  }
-
-  .main-content {
-    gap: 0.8rem;
-  }
-
-  .section-body {
-    padding: 0.8rem;
-  }
-
-  .stock-list {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.6rem;
-  }
-
-  .stock-item {
-    padding: 0.6rem;
-  }
-}
-  
