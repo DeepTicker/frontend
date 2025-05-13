@@ -56,6 +56,23 @@
   line-height: 1.5;
 }
 
+.news-image-wrapper {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.news-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.news-image-desc {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 8px;
+}
+
 /* 뉴스 분석 영역 */
 .news-analysis-section {
   flex: 2;

@@ -281,7 +281,15 @@ const NewsDetailPage = () => {
               <span className="news-date">{new Date(rawNews.date).toLocaleDateString()}</span>
             </div>
           </div>
-          
+          {/* 뉴스 제목 아래, 뉴스 본문 위 */}
+          {rawNews.image_url && (
+            <div className="news-image-wrapper">
+              <img src={rawNews.image_url} alt="뉴스 대표 이미지" className="news-image" />
+              {rawNews.image_desc && (
+                <p className="news-image-desc">{rawNews.image_desc}</p>
+              )}
+            </div>
+          )}
           <p className="news-content-text">{rawNews.content}</p>
         </div>
 
