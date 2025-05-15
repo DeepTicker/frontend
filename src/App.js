@@ -21,7 +21,7 @@ function App() {
       <Navbar />
 
       {/* 페이지별 라우팅 */}
-      <div style={{ marginTop: 20 }}>
+      <div style ={{ padding: '20px' }}>
         <Routes>
           <Route path="/" element={<MainPage2 />} />
           <Route path="/news" element={<NewsPage />} />

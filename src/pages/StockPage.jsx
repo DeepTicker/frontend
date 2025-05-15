@@ -59,10 +59,10 @@ export default function StockTable() {
   };
 
   return (
-    <div className="stock-table-container">
-      <h1 className="stock-table-title">오늘의 주식 차트</h1>
-      <div className="stock-table-wrapper">
-        <table className="stock-table">
+    <div className="stocks-table-container">
+      <h1 className="stocks-table-title">오늘의 주식 차트</h1>
+      <div className="stocks-table-wrapper">
+        <table className="stocks-table">
           <thead>
             <tr>
                 <th className="px-6 py-3" style={{ width: "40%" }}>종목</th>
@@ -75,7 +75,7 @@ export default function StockTable() {
           <tbody>
             {currentStocks.map((stock) => {
               const rate = parseFloat(stock.change_rate);
-              const rateFormatted = `${rate > 0 ? "+" : ""}${rate.toFixed(1)}%`; // + 기호 추가
+              const rateFormatted = `${rate > 0 ? "+" : ""}${rate.toFixed(2)}%`; 
               let rateClass = "gray";
               if (rate > 0) rateClass = "red";
               else if (rate < 0) rateClass = "blue";
@@ -87,7 +87,7 @@ export default function StockTable() {
                     navigate(`./${encodeURIComponent(stock.stock_id)}`)
                   }
                 >
-                  <td className="stock-name-col">{stock.name}</td>
+                  <td className="stocks-name-col">{stock.name}</td>
                   <td>{Number(stock.current_price).toLocaleString()}원</td>
                   <td className={rateClass}>{rateFormatted}</td>
                   <td>{formatMarketCap(stock.market_cap)}</td> {/* ← 여기 수정 */}
