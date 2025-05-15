@@ -165,6 +165,43 @@ const NewsDetailPage = () => {
     );
   };
 
+  // 배경지식 HTML 처리 함수 수정
+  const processBackgroundHtml = (html) => {
+    if (!html) return html;
+
+    // stock-buttons div를 찾아서 처리
+    return html.replace(
+      /<div class="stock-buttons">([\s\S]*?)<\/div>/g,
+      (match, content) => {
+        // 모든 버튼 추출 (onclick="navigateToStock('CODE')")
+        const buttonRegex = /<button[^>]*onclick="navigateToStock\('([^']+)'\)"[^>]*>([^<]+)<\/button>/g;
+        const buttons = [];
+        let buttonMatch;
+        while ((buttonMatch = buttonRegex.exec(content)) !== null) {
+          buttons.push({ code: buttonMatch[1], name: buttonMatch[2] });
+        }
+
+        // 처음 5개 버튼만 표시하고 나머지는 숨김
+        const visibleButtons = buttons.slice(0, 5)
+          .map(btn => `<button onclick="navigateToStock('${btn.code}')">${btn.name}</button>`)
+          .join('');
+        const remainingButtons = buttons.slice(5);
+
+        if (remainingButtons.length > 0) {
+          // 남은 버튼 정보를 data-remaining에 JSON으로 저장
+          return `
+            <div class="stock-buttons" data-remaining='${JSON.stringify(remainingButtons)}'>
+              ${visibleButtons}
+              <button class="show-more-stocks">+ 더보기 (${remainingButtons.length})</button>
+            </div>
+          `;
+        }
+
+        return `<div class="stock-buttons">${visibleButtons}</div>`;
+      }
+    );
+  };
+
   // getCurrentBackground 함수 수정
   const getCurrentBackground = () => {
     if (!rawNews?.classifications || !gptNews?.backgrounds) {
@@ -187,15 +224,15 @@ const NewsDetailPage = () => {
     console.log('찾은 배경지식:', background);
     if (!background) return '';
 
+    let backgroundContent = '';
     if (typeof background.background === 'string') {
-      return background.background;
+      backgroundContent = background.background;
+    } else if (typeof background.background === 'object' && background.background.html) {
+      backgroundContent = background.background.html;
     }
 
-    if (typeof background.background === 'object' && background.background.html) {
-      return background.background.html;
-    }
-
-    return '';
+    // 배경지식 HTML 처리
+    return processBackgroundHtml(backgroundContent);
   };
 
   // getAllBackgrounds 함수 수정
@@ -205,10 +242,15 @@ const NewsDetailPage = () => {
       return null;
     }
     
-    // 모든 배경지식을 HTML로 결합
+    // 모든 배경지식을 HTML로 결합하고 처리
     const backgrounds = gptNews.backgrounds
-      .map(bg => bg.background)
-      .filter(Boolean);
+      .map(bg => {
+        if (typeof bg.background === 'string') return bg.background;
+        if (typeof bg.background === 'object' && bg.background.html) return bg.background.html;
+        return '';
+      })
+      .filter(Boolean)
+      .map(html => processBackgroundHtml(html));
     
     console.log('모든 배경지식:', backgrounds);
     return backgrounds.join('<hr/>');
@@ -216,25 +258,7 @@ const NewsDetailPage = () => {
 
   // getCurrentSummary 함수 수정
   const getCurrentSummary = () => {
-    if (!gptNews?.summary) return null;
-    
-    // 고급 난이도일 때 full summary를 JSON 파싱
-    if (level === "고급" && gptNews.summary.full_summary) {
-      try {
-        // JSON 문자열에서 실제 JSON 부분만 추출 (```json\n{ ... }\n``` 형식 처리)
-        const jsonStr = gptNews.summary.full_summary.replace(/```json\n|\n```/g, '');
-        const parsedSummary = JSON.parse(jsonStr);
-        return {
-          ...gptNews.summary,
-          parsed_full_summary: parsedSummary
-        };
-      } catch (error) {
-        console.error('JSON 파싱 에러:', error);
-        return gptNews.summary;
-      }
-    }
-    
-    return gptNews.summary;
+    return gptNews?.summary || null;
   };
 
   // getAllSummaries 함수 수정
@@ -247,6 +271,29 @@ const NewsDetailPage = () => {
       full_summary: gptNews.summary.full_summary
     }];
   };
+
+  // useEffect 추가: 더보기 버튼 이벤트 처리
+  useEffect(() => {
+    const handleShowMoreStocks = (event) => {
+      if (event.target.classList.contains('show-more-stocks')) {
+        const container = event.target.closest('.stock-buttons');
+        if (!container) return;
+
+        const remainingStocks = JSON.parse(container.dataset.remaining || '[]');
+        if (remainingStocks.length === 0) return;
+
+        // 남은 버튼들을 HTML로 만들어서 추가
+        const newButtons = remainingStocks.map(
+          stock => `<button onclick="navigateToStock('${stock.code}')">${stock.name}</button>`
+        ).join('');
+        event.target.insertAdjacentHTML('beforebegin', newButtons);
+        event.target.remove();
+      }
+    };
+
+    document.addEventListener('click', handleShowMoreStocks);
+    return () => document.removeEventListener('click', handleShowMoreStocks);
+  }, [gptNews?.backgrounds]); // backgrounds가 변경될 때마다 이벤트 리스너 재설정
 
   // 데이터가 없으면 에러 처리
   if (!rawNews) {
@@ -361,35 +408,6 @@ const NewsDetailPage = () => {
                   </div>
                 ))}
               </div>
-            ) : level === "고급" ? (
-              <div className="summary-structured">
-                {getCurrentSummary()?.parsed_full_summary ? (
-                  <>
-                    <div className="summary-section">
-                      <h5 className="summary-subtitle">문제 상황</h5>
-                      <p className="summary-text">{getCurrentSummary().parsed_full_summary.problem}</p>
-                    </div>
-                    <div className="summary-section">
-                      <h5 className="summary-subtitle">원인</h5>
-                      <ul className="summary-list">
-                        {getCurrentSummary().parsed_full_summary.causes.map((cause, index) => (
-                          <li key={index} className="summary-text">{cause}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="summary-section">
-                      <h5 className="summary-subtitle">전략</h5>
-                      <p className="summary-text">{getCurrentSummary().parsed_full_summary.strategy}</p>
-                    </div>
-                    <div className="summary-section">
-                      <h5 className="summary-subtitle">시사점</h5>
-                      <p className="summary-text">{getCurrentSummary().parsed_full_summary.implications}</p>
-                    </div>
-                  </>
-                ) : (
-                  <p className="summary-text">{getCurrentSummary()?.full_summary || '요약 데이터 없음'}</p>
-                )}
-              </div>
             ) : (
               <p className="summary-text">
                 {getCurrentSummary()?.full_summary || '요약 데이터 없음'}
@@ -409,40 +427,36 @@ const NewsDetailPage = () => {
                     className="slider-button prev"
                     onClick={handlePrevBackground}
                     disabled={rawNews.classifications.length <= 1}
-                    aria-label="이전 배경지식"
                   >
-                    ‹
+                    &lt;
                   </button>
                   <div className="background-content">
                     <BackgroundKnowledge 
                       background={getCurrentBackground()} 
                     />
-                    <div className="background-controls">
-                      {rawNews.classifications.length > 1 && (
-                        <div className="background-pagination">
-                          {currentBackgroundIndex + 1} / {rawNews.classifications.length}
-                        </div>
-                      )}
-                      {/* 현재 카테고리가 지원되는 카테고리이고 중급 레벨일 때만 재생성 버튼 표시 */}
-                      {['산업군', '테마', '전반적', '개별주'].includes(rawNews.classifications[currentBackgroundIndex]?.category) && 
-                       level === "중급" && (
-                        <button 
-                          onClick={handleRegenerate}
-                          disabled={isRegenerating}
-                          className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
-                        >
-                          {isRegenerating ? '재생성 중...' : '재생성'}
-                        </button>
-                      )}
-                    </div>
+                    {rawNews.classifications.length > 1 && (
+                      <div className="background-pagination">
+                        {currentBackgroundIndex + 1} / {rawNews.classifications.length}
+                      </div>
+                    )}
+                    {/* 현재 카테고리가 지원되는 카테고리이고 중급 레벨일 때만 재생성 버튼 표시 */}
+                    {['산업군', '테마', '전반적', '개별주'].includes(rawNews.classifications[currentBackgroundIndex]?.category) && 
+                     level === "중급" && (
+                      <button 
+                        onClick={handleRegenerate}
+                        disabled={isRegenerating}
+                        className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
+                      >
+                        {isRegenerating ? '재생성 중...' : '재생성'}
+                      </button>
+                    )}
                   </div>
                   <button 
                     className="slider-button next"
                     onClick={handleNextBackground}
                     disabled={rawNews.classifications.length <= 1}
-                    aria-label="다음 배경지식"
                   >
-                    ›
+                    &gt;
                   </button>
                 </div>
               )}
