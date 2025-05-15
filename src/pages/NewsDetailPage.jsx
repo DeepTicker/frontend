@@ -105,9 +105,8 @@ const NewsDetailPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          newsId, 
-          level,
           news_id: newsId,
+          level,
           representative: currentClassification.representative,
           stockCode: currentClassification.category === '개별주' ? currentClassification.stock_code : null,
           themeName: currentClassification.category === '테마' ? currentClassification.theme_name : null
@@ -186,7 +185,17 @@ const NewsDetailPage = () => {
     );
     
     console.log('찾은 배경지식:', background);
-    return background?.background || null;
+    if (!background) return '';
+
+    if (typeof background.background === 'string') {
+      return background.background;
+    }
+
+    if (typeof background.background === 'object' && background.background.html) {
+      return background.background.html;
+    }
+
+    return '';
   };
 
   // getAllBackgrounds 함수 수정
@@ -207,7 +216,25 @@ const NewsDetailPage = () => {
 
   // getCurrentSummary 함수 수정
   const getCurrentSummary = () => {
-    return gptNews?.summary || null;
+    if (!gptNews?.summary) return null;
+    
+    // 고급 난이도일 때 full summary를 JSON 파싱
+    if (level === "고급" && gptNews.summary.full_summary) {
+      try {
+        // JSON 문자열에서 실제 JSON 부분만 추출 (```json\n{ ... }\n``` 형식 처리)
+        const jsonStr = gptNews.summary.full_summary.replace(/```json\n|\n```/g, '');
+        const parsedSummary = JSON.parse(jsonStr);
+        return {
+          ...gptNews.summary,
+          parsed_full_summary: parsedSummary
+        };
+      } catch (error) {
+        console.error('JSON 파싱 에러:', error);
+        return gptNews.summary;
+      }
+    }
+    
+    return gptNews.summary;
   };
 
   // getAllSummaries 함수 수정
@@ -334,6 +361,35 @@ const NewsDetailPage = () => {
                   </div>
                 ))}
               </div>
+            ) : level === "고급" ? (
+              <div className="summary-structured">
+                {getCurrentSummary()?.parsed_full_summary ? (
+                  <>
+                    <div className="summary-section">
+                      <h5 className="summary-subtitle">문제 상황</h5>
+                      <p className="summary-text">{getCurrentSummary().parsed_full_summary.problem}</p>
+                    </div>
+                    <div className="summary-section">
+                      <h5 className="summary-subtitle">원인</h5>
+                      <ul className="summary-list">
+                        {getCurrentSummary().parsed_full_summary.causes.map((cause, index) => (
+                          <li key={index} className="summary-text">{cause}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="summary-section">
+                      <h5 className="summary-subtitle">전략</h5>
+                      <p className="summary-text">{getCurrentSummary().parsed_full_summary.strategy}</p>
+                    </div>
+                    <div className="summary-section">
+                      <h5 className="summary-subtitle">시사점</h5>
+                      <p className="summary-text">{getCurrentSummary().parsed_full_summary.implications}</p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="summary-text">{getCurrentSummary()?.full_summary || '요약 데이터 없음'}</p>
+                )}
+              </div>
             ) : (
               <p className="summary-text">
                 {getCurrentSummary()?.full_summary || '요약 데이터 없음'}
@@ -353,36 +409,40 @@ const NewsDetailPage = () => {
                     className="slider-button prev"
                     onClick={handlePrevBackground}
                     disabled={rawNews.classifications.length <= 1}
+                    aria-label="이전 배경지식"
                   >
-                    &lt;
+                    ‹
                   </button>
                   <div className="background-content">
                     <BackgroundKnowledge 
                       background={getCurrentBackground()} 
                     />
-                    {rawNews.classifications.length > 1 && (
-                      <div className="background-pagination">
-                        {currentBackgroundIndex + 1} / {rawNews.classifications.length}
-                      </div>
-                    )}
-                    {/* 현재 카테고리가 지원되는 카테고리이고 중급 레벨일 때만 재생성 버튼 표시 */}
-                    {['산업군', '테마', '전반적', '개별주'].includes(rawNews.classifications[currentBackgroundIndex]?.category) && 
-                     level === "중급" && (
-                      <button 
-                        onClick={handleRegenerate}
-                        disabled={isRegenerating}
-                        className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
-                      >
-                        {isRegenerating ? '재생성 중...' : '재생성'}
-                      </button>
-                    )}
+                    <div className="background-controls">
+                      {rawNews.classifications.length > 1 && (
+                        <div className="background-pagination">
+                          {currentBackgroundIndex + 1} / {rawNews.classifications.length}
+                        </div>
+                      )}
+                      {/* 현재 카테고리가 지원되는 카테고리이고 중급 레벨일 때만 재생성 버튼 표시 */}
+                      {['산업군', '테마', '전반적', '개별주'].includes(rawNews.classifications[currentBackgroundIndex]?.category) && 
+                       level === "중급" && (
+                        <button 
+                          onClick={handleRegenerate}
+                          disabled={isRegenerating}
+                          className={`regenerate-button ${isRegenerating ? 'disabled' : ''}`}
+                        >
+                          {isRegenerating ? '재생성 중...' : '재생성'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <button 
                     className="slider-button next"
                     onClick={handleNextBackground}
                     disabled={rawNews.classifications.length <= 1}
+                    aria-label="다음 배경지식"
                   >
-                    &gt;
+                    ›
                   </button>
                 </div>
               )}
