@@ -101,9 +101,9 @@ export default function StockDetail() {
     const fetchAllData = async () => {
       try {
         const [stockRes, recomRes, predictRes] = await Promise.all([
-          fetch(`http://localhost:10000/api/stocks/${stock_id}/data`),
-          fetch(`http://localhost:10000/api/stocks/${stock_id}/recommendations`),
-          fetch(`http://localhost:10000/api/stocks/${stock_id}/predictions`)
+          fetch(`https://backend-nuth.onrender.com/api/stocks/${stock_id}/data`),
+          fetch(`https://backend-nuth.onrender.com/api/stocks/${stock_id}/recommendations`),
+          fetch(`https://backend-nuth.onrender.com/api/stocks/${stock_id}/predictions`)
         ]);
 
         const stockData = await stockRes.json();

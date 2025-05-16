@@ -89,7 +89,7 @@ const MainPage2 = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:10000/api/stocks/forMain');
+        const res = await fetch('https://backend-nuth.onrender.com/api/stocks/forMain');
         const data = await res.json();
 
         const stockKeys = Object.keys(data).slice(0, 5);
