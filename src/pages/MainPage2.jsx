@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './MainPage2.css';
+import  './MainPage.css';
+import NewsPreview from '../components/NewsPreview'; 
 import {Line} from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -192,6 +194,7 @@ const MainPage2 = () => {
   };
 
   return (
+    <div>
     <div className="stock-container">
       <Swiper
         spaceBetween={50}
@@ -299,6 +302,7 @@ const MainPage2 = () => {
           </SwiperSlide>
         ))}
       </Swiper>
+       </div>
 	{/* 뉴스 섹션 */}{/* 🔽 뉴스 섹션 - 슬라이드 아래에 위치 */}
       <div className="news-container">
         <h2 className="news-header-title">최근 뉴스</h2>
