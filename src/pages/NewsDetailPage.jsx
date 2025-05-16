@@ -508,7 +508,7 @@ const NewsDetailPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="summary-content">
+              <div className="summary-text">
                 {renderSummaryContent(getCurrentSummary()?.full_summary)}
               </div>
             )}
