@@ -73,7 +73,7 @@ const MainPage2 = () => {
   const getLastMonthLabels = () => {
     const labels = [];
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 1; i < 31; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const yyyy = date.getFullYear();

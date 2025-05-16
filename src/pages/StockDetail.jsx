@@ -32,10 +32,10 @@ ChartJS.register(
 function getGradient(ctx, chartArea, color) {
   const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
   if (color === 'red') {
-    gradient.addColorStop(1, 'rgba(234, 67, 53, 0.3)');
+    gradient.addColorStop(1, 'rgba(234, 67, 53, 0.25)');
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
   } else {
-    gradient.addColorStop(1, 'rgba(66, 133, 244, 0.3)');
+    gradient.addColorStop(1, 'rgba(66, 133, 244, 0.25)');
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
   }
   return gradient;
@@ -44,7 +44,7 @@ function getGradient(ctx, chartArea, color) {
 const getLastMonthLabels = () => {
     const labels = [];
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 1; i < 31; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const yyyy = date.getFullYear();
@@ -160,7 +160,10 @@ export default function StockDetail() {
 
     const labels = getLastMonthLabels();
     const dataPoints = prediction.map(item => item.predicted_close);
-    const basePrice = stockData[0].current_price;
+
+    // 첫째 날 종가와 마지막 날 종가 비교
+    const firstClose = dataPoints[0];
+    const lastClose = dataPoints[dataPoints.length - 1];
 
     return {
       labels,
@@ -168,12 +171,12 @@ export default function StockDetail() {
         {
           label: 'Predicted',
           data: dataPoints,
-          borderColor: basePrice < dataPoints.at(-1) ? 'rgb(234, 67, 53)' : 'rgb(66, 133, 244)',
+          borderColor: firstClose < lastClose ? 'rgb(234, 67, 53)' : 'rgb(66, 133, 244)',  // 빨강 or 파랑
           backgroundColor: function(context) {
             const chart = context.chart;
             const { ctx, chartArea } = chart;
             if (!chartArea) return null;
-            return getGradient(ctx, chartArea, basePrice < dataPoints.at(-1) ? 'red' : 'blue');
+            return getGradient(ctx, chartArea, firstClose < lastClose ? 'red' : 'blue');
           },
           fill: true,
           pointRadius: 1.5,
@@ -181,7 +184,8 @@ export default function StockDetail() {
         }
       ]
     };
-  }, [prediction, stockData]);
+  }, [prediction]);
+
 
   const chartOptions = {
     responsive: true,
@@ -215,7 +219,7 @@ export default function StockDetail() {
         callbacks: {
           label: (context) => {
             const value = context.parsed.y?.toFixed(0);
-            return `금액: ${value} KRW`;
+            return `금액: ${Number(value).toLocaleString()} KRW`;
           }
         }
       },
