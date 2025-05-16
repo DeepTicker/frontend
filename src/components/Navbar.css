@@ -7,7 +7,7 @@
     display: flex;
     justify-content: space-between; /* 제목 왼쪽, 버튼 오른쪽 */
     align-items: center;
-    background-color: #f2f2f2;
+    background-color: white;
     padding: 10px 1.5rem;
     z-index: 10;
     border-bottom: 1px solid #ddd;
@@ -46,7 +46,18 @@
   } */
   
   .navbar button:hover {
-    background-color: #ddd;
+    background-color: rgb(66, 133, 244);
     border-radius: 4px;
   }
   
+  .navbar-buttons button {
+    background-color: rgb(66, 133, 244);  /* 버튼 배경색 */
+    color: white;               /* 텍스트 색 */
+    border: none;
+    padding: 4px 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 4px;
+  }
