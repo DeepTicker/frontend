@@ -32,7 +32,7 @@ const NewsDetailPage = () => {
   // 뉴스 원문 데이터 가져오기
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+    fetch(`http://localhost:10000/api/news/${newsId}?level=${level}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         console.log('받은 데이터:', data); // 디버깅용 로그 추가
