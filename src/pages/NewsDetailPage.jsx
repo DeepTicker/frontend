@@ -169,7 +169,21 @@ const NewsDetailPage = () => {
   const processBackgroundHtml = (html) => {
     if (!html) return html;
 
-    // stock-buttons div를 찾아서 처리
+    // 1. <p>{...JSON...}</p> 패턴을 찾아서 파싱
+    html = html.replace(
+      /<p>({.*?})<\/p>/gs,
+      (match, jsonStr) => {
+        try {
+          const parsed = JSON.parse(jsonStr);
+          // background 필드가 있으면 그걸 반환, 아니면 전체를 문자열로
+          return parsed.background ? parsed.background : '';
+        } catch {
+          return match; // 파싱 실패시 원본 유지
+        }
+      }
+    );
+
+    // 2. stock-buttons div를 찾아서 처리 (기존 코드)
     return html.replace(
       /<div class="stock-buttons">([\s\S]*?)<\/div>/g,
       (match, content) => {
@@ -258,17 +272,97 @@ const NewsDetailPage = () => {
 
   // getCurrentSummary 함수 수정
   const getCurrentSummary = () => {
-    return gptNews?.summary || null;
+    if (!gptNews?.summary) return null;
+    
+    const summary = { ...gptNews.summary };
+    
+    // full_summary가 JSON 문자열인 경우 파싱
+    if (typeof summary.full_summary === 'string' && summary.full_summary.trim().startsWith('```json')) {
+      try {
+        // ```json과 ``` 제거
+        const jsonStr = summary.full_summary.replace(/```json\n|\n```/g, '').trim();
+        const parsedSummary = JSON.parse(jsonStr);
+        summary.full_summary = parsedSummary;
+      } catch (err) {
+        console.error('JSON 파싱 오류:', err);
+        // 파싱 실패시 원본 문자열 유지
+      }
+    }
+    
+    return summary;
+  };
+
+  // JSON 객체를 JSX로 변환하는 함수 추가
+  const renderSummaryContent = (content) => {
+    if (!content) return '요약 데이터 없음';
+    
+    // 문자열인 경우 그대로 반환
+    if (typeof content === 'string') {
+      return content;
+    }
+    
+    // 객체인 경우 구조화된 형태로 렌더링
+    if (typeof content === 'object') {
+      return (
+        <div className="structured-summary">
+          {content.problem && (
+            <div className="summary-section">
+              <h6>문제점</h6>
+              <p>{content.problem}</p>
+            </div>
+          )}
+          {content.causes && content.causes.length > 0 && (
+            <div className="summary-section">
+              <h6>원인</h6>
+              <ul>
+                {content.causes.map((cause, index) => (
+                  <li key={index}>{cause}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {content.strategy && (
+            <div className="summary-section">
+              <h6>전략</h6>
+              <p>{content.strategy}</p>
+            </div>
+          )}
+          {content.implications && (
+            <div className="summary-section">
+              <h6>시사점</h6>
+              <p>{content.implications}</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    return '요약 데이터 없음';
   };
 
   // getAllSummaries 함수 수정
   const getAllSummaries = () => {
     if (!gptNews?.summary) return null;
     
+    const summary = { ...gptNews.summary };
+    
+    // full_summary가 JSON 문자열인 경우 파싱
+    if (typeof summary.full_summary === 'string' && summary.full_summary.trim().startsWith('```json')) {
+      try {
+        // ```json과 ``` 제거
+        const jsonStr = summary.full_summary.replace(/```json\n|\n```/g, '').trim();
+        const parsedSummary = JSON.parse(jsonStr);
+        summary.full_summary = parsedSummary;
+      } catch (err) {
+        console.error('JSON 파싱 오류:', err);
+        // 파싱 실패시 원본 문자열 유지
+      }
+    }
+    
     return [{
       category: '전체',
-      one_line_summary: gptNews.summary.one_line_summary,
-      full_summary: gptNews.summary.full_summary
+      one_line_summary: summary.one_line_summary,
+      full_summary: summary.full_summary
     }];
   };
 
@@ -409,14 +503,14 @@ const NewsDetailPage = () => {
               <div className="summary-list">
                 {getAllSummaries()?.map((summary, index) => (
                   <div key={index} className="summary-item">
-                    <p className="summary-text">{summary.full_summary || '요약 데이터 없음'}</p>
+                    {renderSummaryContent(summary.full_summary)}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="summary-text">
-                {getCurrentSummary()?.full_summary || '요약 데이터 없음'}
-              </p>
+              <div className="summary-content">
+                {renderSummaryContent(getCurrentSummary()?.full_summary)}
+              </div>
             )}
 
             {/* 배경지식 섹션 */}
