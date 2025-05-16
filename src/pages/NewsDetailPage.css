@@ -221,13 +221,6 @@
 }
 
 /* 배경지식 섹션 */
-.background-knowledge-wrapper {
-  background: #fff;
-  border-radius: 6px;
-  padding: 16px;
-  position: relative;
-}
-
 .background-slider {
   display: flex;
   align-items: center;
@@ -235,10 +228,21 @@
   margin-bottom: 32px;
 }
 
+.background-slider-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  justify-content: flex-start;
+}
+
 .background-content {
   flex: 1;
   position: relative;
   min-height: 150px;
+  background: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .slider-button {
@@ -348,14 +352,15 @@
 }
 
 .stock-button.positive {
-  background-color: #D62828;
+  background-color: #B54848; /* 차분한 붉은색 */
   color: #fff;
 }
 
 .stock-button.negative {
-  background-color: #1D4ED8;
+  background-color: #3B5BA4; /* 부드러운 어두운 파랑 */
   color: #fff;
 }
+
 
 .stock-positive, .stock-negative {
   padding: 4px 8px;
@@ -424,4 +429,13 @@
 .show-more-stocks:hover {
   background: #e9ecef !important;
   color: #495057 !important;
+}
+
+.background-slider-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 16px;
+  margin-bottom: 0;
 } 

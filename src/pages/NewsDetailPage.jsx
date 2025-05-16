@@ -295,6 +295,11 @@ const NewsDetailPage = () => {
     return () => document.removeEventListener('click', handleShowMoreStocks);
   }, [gptNews?.backgrounds]); // backgrounds가 변경될 때마다 이벤트 리스너 재설정
 
+  // 긍정/부정 주식 추출
+  const sentimentBackground = gptNews?.backgrounds?.find(bg => bg.sentimentData);
+  const positiveStocks = sentimentBackground?.sentimentData?.positive_stocks || [];
+  const negativeStocks = sentimentBackground?.sentimentData?.negative_stocks || [];
+
   // 데이터가 없으면 에러 처리
   if (!rawNews) {
     return (
@@ -415,30 +420,39 @@ const NewsDetailPage = () => {
             )}
 
             {/* 배경지식 섹션 */}
-            <div className="background-section-header">
+            <div>
               <h4 className="section-title">배경지식</h4>
-            </div>
-            <div className="background-knowledge-wrapper">
+              {/* 배경지식 내용 */}
               {level === "초급" ? (
                 <BackgroundKnowledge background={getAllBackgrounds()} />
               ) : (
-                <div className="background-slider">
-                  <button 
-                    className="slider-button prev"
-                    onClick={handlePrevBackground}
-                    disabled={rawNews.classifications.length <= 1}
-                  >
-                    &lt;
-                  </button>
-                  <div className="background-content">
-                    <BackgroundKnowledge 
-                      background={getCurrentBackground()} 
-                    />
-                    {rawNews.classifications.length > 1 && (
+                <div className="background-content">
+                  <BackgroundKnowledge 
+                    background={getCurrentBackground()} 
+                  />
+                  {/* 슬라이더 버튼을 배경지식 아래에, 카테고리가 2개 이상일 때만 노출 */}
+                  {rawNews.classifications.length > 1 && (
+                    <div className="background-slider-bottom">
+                      <button 
+                        className="slider-button prev"
+                        onClick={handlePrevBackground}
+                        disabled={rawNews.classifications.length <= 1}
+                      >
+                        &lt;
+                      </button>
                       <div className="background-pagination">
                         {currentBackgroundIndex + 1} / {rawNews.classifications.length}
                       </div>
-                    )}
+                      <button 
+                        className="slider-button next"
+                        onClick={handleNextBackground}
+                        disabled={rawNews.classifications.length <= 1}
+                      >
+                        &gt;
+                      </button>
+                    </div>
+                  )}
+                  <div className="background-controls">
                     {/* 현재 카테고리가 지원되는 카테고리이고 중급 레벨일 때만 재생성 버튼 표시 */}
                     {['산업군', '테마', '전반적', '개별주'].includes(rawNews.classifications[currentBackgroundIndex]?.category) && 
                      level === "중급" && (
@@ -451,13 +465,6 @@ const NewsDetailPage = () => {
                       </button>
                     )}
                   </div>
-                  <button 
-                    className="slider-button next"
-                    onClick={handleNextBackground}
-                    disabled={rawNews.classifications.length <= 1}
-                  >
-                    &gt;
-                  </button>
                 </div>
               )}
             </div>
@@ -467,41 +474,23 @@ const NewsDetailPage = () => {
           <div className="stock-section">
             <h4 className="section-title">긍정/부정 주식</h4>
             <div className="news-detail-stock-list">
-              {(gptNews?.positive_stocks||[]).map((stock) =>
-                isIndustry ? (
-                  <div
-                    key={stock}
-                    className="stock-positive"
-                  >
-                    {stock}
-                  </div>
-                ) : (
-                  <button
-                    key={stock}
-                    onClick={() => navigate(`/stocks/${stock}`)}
-                    className="stock-button positive"
-                  >
-                    {stock}
-                  </button>
-                )
+              {positiveStocks.map(stock =>
+                <button
+                  key={stock.code}
+                  onClick={() => navigate(`/stocks/${stock.code}`)}
+                  className="stock-button positive"
+                >
+                  {stock.name}
+                </button>
               )}
-              {(gptNews?.negative_stocks||[]).map((stock) =>
-                isIndustry ? (
-                  <div
-                    key={stock}
-                    className="stock-negative"
-                  >
-                    {stock}
-                  </div>
-                ) : (
-                  <button
-                    key={stock}
-                    onClick={() => navigate(`/stocks/${stock}`)}
-                    className="stock-button negative"
-                  >
-                    {stock}
-                  </button>
-                )
+              {negativeStocks.map(stock =>
+                <button
+                  key={stock.code}
+                  onClick={() => navigate(`/stocks/${stock.code}`)}
+                  className="stock-button negative"
+                >
+                  {stock.name}
+                </button>
               )}
             </div>
           </div>

@@ -52,7 +52,7 @@ const NewsPage = () => {
   return (
     <PageLayout>
       <div className="news-page-container">
-        <h2 className="news-page-title">📰 뉴스 목록</h2>
+        <h2 className="news-page-title">DeepTicker News Digest</h2>
 
         {newsList?.map((news) => (
           <div key={news.id} className="news-item">
