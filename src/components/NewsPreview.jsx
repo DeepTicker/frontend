@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './NewsPreview.css';
 
 const NewsPreview = () => {
   const [newsList, setNewsList] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMainNews = async () => {
@@ -23,10 +26,19 @@ const NewsPreview = () => {
     return dateString.substring(0, 10);
   };
 
+  const handleNewsClick = (newsId) => {
+    navigate(`/news/${newsId}`);
+  };
+
   return (
     <ul className="news-list">
       {newsList?.map((news) => (
-        <li key={news.id} className="news-item">
+        <li 
+          key={news.id} 
+          className="news-item"
+          onClick={() => handleNewsClick(news.id)}
+          style={{ cursor: 'pointer' }}
+        >
           <h4 className="news-title">{news.title}</h4>
           <div className="news-meta">
             <div className="news-meta-left">
