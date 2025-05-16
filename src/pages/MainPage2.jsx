@@ -305,7 +305,7 @@ const MainPage2 = () => {
        </div>
 	{/* 뉴스 섹션 */}{/* 🔽 뉴스 섹션 - 슬라이드 아래에 위치 */}
       <div className="news-container">
-        <h2 className="news-header-title">최근 뉴스</h2>
+        <h1 className="news-header-title">Recent News</h1>
         <div className="news-body">
           <NewsPreview />
         </div>
