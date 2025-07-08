@@ -209,17 +209,17 @@
 }
 
 .structured-summary h6 {
-  color: #1971c2;
-  font-size: 1.05rem;
+  color: #2c3e50;
+  font-size: 1rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.01em;
 }
 
 .structured-summary p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.7;
-  color: #212529;
+  color: #2c3e50;
   margin: 0 0 0.5rem 0;
   font-weight: 500;
 }
@@ -236,7 +236,7 @@
   margin-bottom: 0.5rem;
   font-size: 1rem;
   line-height: 1.7;
-  color: #212529;
+  color: #2c3e50;
   font-weight: 500;
 }
 
@@ -245,7 +245,7 @@
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: #1971c2;
+  background: #2c3e50;
   border-radius: 50%;
   position: absolute;
   left: 0;
@@ -486,4 +486,52 @@
 .show-more-stocks:hover {
   background: #e9ecef !important;
   color: #495057 !important;
+}
+
+/* 에러 및 로딩 상태 */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.loading-container p {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+}
+
+.error-container h3 {
+  color: #d32f2f;
+  margin-bottom: 16px;
+  font-size: 1.3rem;
+}
+
+.error-container p {
+  color: #666;
+  margin-bottom: 24px;
+  font-size: 1rem;
+}
+
+.retry-button {
+  padding: 10px 20px;
+  background-color: #1971c2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background-color: #1557b0;
 } 

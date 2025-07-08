@@ -15,7 +15,8 @@ const NewsDetailPage = () => {
   const [gptNews, setGptNews] = useState(null);
   const [level, setLevel] = useState("중급");
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // 카테고리에 따른 상태 변수들
   const [isIndustry, setIsIndustry] = useState(false);
@@ -32,25 +33,36 @@ const NewsDetailPage = () => {
   // 뉴스 원문 데이터 가져오기
   useEffect(() => {
     setLoading(true);
-    fetch(`https://backend-nuth.onrender.com/api/news/${newsId}?level=${level}`)
-      .then(res => res.ok ? res.json() : null)
+    setError(null);
+    
+    fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => {
         console.log('받은 데이터:', data); // 디버깅용 로그 추가
         
+        if (!data || !data.rawNews) {
+          throw new Error('뉴스 데이터가 없습니다.');
+        }
+        
         setRawNews({
-          ...data?.rawNews,
-          classifications: Array.isArray(data?.rawNews?.classifications)
+          ...data.rawNews,
+          classifications: Array.isArray(data.rawNews.classifications)
             ? data.rawNews.classifications
             : [],
         });
         
         // summary와 backgrounds를 gptNews로 설정
         setGptNews({
-          summary: data?.summary || null,
-          backgrounds: Array.isArray(data?.backgrounds) ? data.backgrounds : []
+          summary: data.summary || null,
+          backgrounds: Array.isArray(data.backgrounds) ? data.backgrounds : []
         });
         
-        if (data?.rawNews?.classifications?.[0]?.category) {
+        if (data.rawNews.classifications?.[0]?.category) {
           const category = data.rawNews.classifications[0].category;
           setIsIndustry(category === '산업군');
           setIsTheme(category === '테마');
@@ -63,6 +75,7 @@ const NewsDetailPage = () => {
       })
       .catch((err) => {
         console.error("데이터 로딩 오류:", err);
+        setError(err.message || '데이터를 불러오는 중 오류가 발생했습니다.');
         setLoading(false);
       });
   }, [newsId, level]);
@@ -394,11 +407,48 @@ const NewsDetailPage = () => {
   const positiveStocks = sentimentBackground?.sentimentData?.positive_stocks || [];
   const negativeStocks = sentimentBackground?.sentimentData?.negative_stocks || [];
 
+  // 로딩 중일 때
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="news-detail-container">
+          <div className="loading-container">
+            <p>뉴스를 불러오는 중...</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // 에러가 발생했을 때
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="news-detail-container">
+          <div className="error-container">
+            <h3>오류가 발생했습니다</h3>
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()} className="retry-button">
+              다시 시도
+            </button>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
   // 데이터가 없으면 에러 처리
   if (!rawNews) {
     return (
       <PageLayout>
-        <p>존재하지 않는 뉴스입니다. : 데이터가 없음</p>
+        <div className="news-detail-container">
+          <div className="error-container">
+            <p>존재하지 않는 뉴스입니다.</p>
+            <button onClick={() => navigate(-1)} className="back-button">
+              뒤로가기
+            </button>
+          </div>
+        </div>
       </PageLayout>
     );
   }
@@ -502,7 +552,7 @@ const NewsDetailPage = () => {
             {level === "초급" ? (
               <div className="summary-list">
                 {getAllSummaries()?.map((summary, index) => (
-                  <div key={index} className="summary-item">
+                  <div key={index} className="summary-text">
                     {renderSummaryContent(summary.full_summary)}
                   </div>
                 ))}
@@ -520,7 +570,7 @@ const NewsDetailPage = () => {
               {level === "초급" ? (
                 <BackgroundKnowledge background={getAllBackgrounds()} />
               ) : (
-                <div className="background-content">
+                <div>
                   <BackgroundKnowledge 
                     background={getCurrentBackground()} 
                   />
