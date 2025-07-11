@@ -29,6 +29,10 @@ const NewsDetailPage = () => {
   const [newsList, setNewsList] = useState([]);
   const [totalNews, setTotalNews] = useState(0);
   const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
+  
+  // 감정분석 관련 상태
+  const [sentimentData, setSentimentData] = useState(null);
+  const [sentimentLoading, setSentimentLoading] = useState(false);
 
   // 뉴스 원문 데이터 가져오기
   useEffect(() => {
@@ -79,6 +83,32 @@ const NewsDetailPage = () => {
         setLoading(false);
       });
   }, [newsId, level]);
+
+  // 감정분석 결과 조회
+  const fetchSentimentAnalysis = async () => {
+    setSentimentLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/news/sentiment/${newsId}`);
+      const result = await response.json();
+      
+      if (result.success && result.data.summary.has_analysis) {
+        setSentimentData(result.data);
+      } else {
+        setSentimentData(null);
+      }
+    } catch (error) {
+      console.error('감정분석 조회 실패:', error);
+      setSentimentData(null);
+    }
+    setSentimentLoading(false);
+  };
+
+  // 페이지 로드 시 감정분석 결과 조회
+  useEffect(() => {
+    if (newsId) {
+      fetchSentimentAnalysis();
+    }
+  }, [newsId]);
   
   // 배경지식 재생성 함수
   const handleRegenerate = async () => {
@@ -402,10 +432,18 @@ const NewsDetailPage = () => {
     return () => document.removeEventListener('click', handleShowMoreStocks);
   }, [gptNews?.backgrounds]); // backgrounds가 변경될 때마다 이벤트 리스너 재설정
 
-  // 긍정/부정 주식 추출
-  const sentimentBackground = gptNews?.backgrounds?.find(bg => bg.sentimentData);
-  const positiveStocks = sentimentBackground?.sentimentData?.positive_stocks || [];
-  const negativeStocks = sentimentBackground?.sentimentData?.negative_stocks || [];
+  // 감정분석 API에서 긍정/부정 엔티티 추출
+  const positiveStocks = sentimentData?.entities?.stocks?.filter(stock => stock.sentiment === '+') || [];
+  const negativeStocks = sentimentData?.entities?.stocks?.filter(stock => stock.sentiment === '-') || [];
+  const neutralStocks = sentimentData?.entities?.stocks?.filter(stock => stock.sentiment === '0') || [];
+  
+  const positiveThemes = sentimentData?.entities?.themes?.filter(theme => theme.sentiment === '+') || [];
+  const negativeThemes = sentimentData?.entities?.themes?.filter(theme => theme.sentiment === '-') || [];
+  const neutralThemes = sentimentData?.entities?.themes?.filter(theme => theme.sentiment === '0') || [];
+  
+  const positiveIndustries = sentimentData?.entities?.industries?.filter(industry => industry.sentiment === '+') || [];
+  const negativeIndustries = sentimentData?.entities?.industries?.filter(industry => industry.sentiment === '-') || [];
+  const neutralIndustries = sentimentData?.entities?.industries?.filter(industry => industry.sentiment === '0') || [];
 
   // 로딩 중일 때
   if (loading) {
@@ -614,29 +652,256 @@ const NewsDetailPage = () => {
             </div>
           </div>
 
-          {/* 상승/하락 주식 (오른쪽 영역 하단) */}
+          {/* 감정분석 주식 섹션 */}
           <div className="stock-section">
-            <h4 className="section-title">긍정/부정 주식</h4>
-            <div className="news-detail-stock-list">
-              {positiveStocks.map(stock =>
-                <button
-                  key={stock.code}
-                  onClick={() => navigate(`/stocks/${stock.code}`)}
-                  className="stock-button positive"
-                >
-                  {stock.name}
-                </button>
-              )}
-              {negativeStocks.map(stock =>
-                <button
-                  key={stock.code}
-                  onClick={() => navigate(`/stocks/${stock.code}`)}
-                  className="stock-button negative"
-                >
-                  {stock.name}
-                </button>
-              )}
-            </div>
+            <h4 className="section-title">감정분석 주식</h4>
+            
+            {sentimentLoading ? (
+              <div className="sentiment-loading">
+                <p>감정분석 결과를 불러오는 중...</p>
+              </div>
+            ) : sentimentData ? (
+              <div className="sentiment-results">
+                {/* 긍정적 엔티티 */}
+                {(positiveStocks.length > 0 || positiveThemes.length > 0 || positiveIndustries.length > 0) && (
+                  <div className="sentiment-group">
+                    <h5 className="sentiment-group-title">📈 긍정적 분석</h5>
+                    <div className="sentiment-entities">
+                      {/* 긍정적 주식 */}
+                      {positiveStocks.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">주식</h6>
+                          <div className="sentiment-stock-list">
+                            {positiveStocks.map(stock => (
+                              <div key={stock.entity_code} className="sentiment-stock-item">
+                                <button
+                                  onClick={() => navigate(`/stocks/${stock.entity_code}`)}
+                                  className="stock-button positive"
+                                >
+                                  {stock.entity_name}
+                                </button>
+                                <div className="stock-meta">
+                                  <span className="confidence">신뢰도: {stock.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 긍정적 테마 */}
+                      {positiveThemes.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">테마</h6>
+                          <div className="sentiment-entity-list">
+                            {positiveThemes.map((theme, index) => (
+                              <div key={index} className="sentiment-entity-item">
+                                <span className="entity-tag positive">{theme.entity_name}</span>
+                                <div className="entity-meta">
+                                  <span className="confidence">신뢰도: {theme.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 긍정적 산업 */}
+                      {positiveIndustries.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">산업</h6>
+                          <div className="sentiment-entity-list">
+                            {positiveIndustries.map((industry, index) => (
+                              <div key={index} className="sentiment-entity-item">
+                                <span className="entity-tag positive">{industry.entity_name}</span>
+                                <div className="entity-meta">
+                                  <span className="confidence">신뢰도: {industry.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 부정적 엔티티 */}
+                {(negativeStocks.length > 0 || negativeThemes.length > 0 || negativeIndustries.length > 0) && (
+                  <div className="sentiment-group">
+                    <h5 className="sentiment-group-title">📉 부정적 분석</h5>
+                    <div className="sentiment-entities">
+                      {/* 부정적 주식 */}
+                      {negativeStocks.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">주식</h6>
+                          <div className="sentiment-stock-list">
+                            {negativeStocks.map(stock => (
+                              <div key={stock.entity_code} className="sentiment-stock-item">
+                                <button
+                                  onClick={() => navigate(`/stocks/${stock.entity_code}`)}
+                                  className="stock-button negative"
+                                >
+                                  {stock.entity_name}
+                                </button>
+                                <div className="stock-meta">
+                                  <span className="confidence">신뢰도: {stock.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 부정적 테마 */}
+                      {negativeThemes.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">테마</h6>
+                          <div className="sentiment-entity-list">
+                            {negativeThemes.map((theme, index) => (
+                              <div key={index} className="sentiment-entity-item">
+                                <span className="entity-tag negative">{theme.entity_name}</span>
+                                <div className="entity-meta">
+                                  <span className="confidence">신뢰도: {theme.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 부정적 산업 */}
+                      {negativeIndustries.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">산업</h6>
+                          <div className="sentiment-entity-list">
+                            {negativeIndustries.map((industry, index) => (
+                              <div key={index} className="sentiment-entity-item">
+                                <span className="entity-tag negative">{industry.entity_name}</span>
+                                <div className="entity-meta">
+                                  <span className="confidence">신뢰도: {industry.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 중립적 엔티티 */}
+                {(neutralStocks.length > 0 || neutralThemes.length > 0 || neutralIndustries.length > 0) && (
+                  <div className="sentiment-group">
+                    <h5 className="sentiment-group-title">😐 중립적 분석</h5>
+                    <div className="sentiment-entities">
+                      {/* 중립적 주식 */}
+                      {neutralStocks.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">주식</h6>
+                          <div className="sentiment-stock-list">
+                            {neutralStocks.map(stock => (
+                              <div key={stock.entity_code} className="sentiment-stock-item">
+                                <button
+                                  onClick={() => navigate(`/stocks/${stock.entity_code}`)}
+                                  className="stock-button neutral"
+                                >
+                                  {stock.entity_name}
+                                </button>
+                                <div className="stock-meta">
+                                  <span className="confidence">신뢰도: {stock.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 중립적 테마 */}
+                      {neutralThemes.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">테마</h6>
+                          <div className="sentiment-entity-list">
+                            {neutralThemes.map((theme, index) => (
+                              <div key={index} className="sentiment-entity-item">
+                                <span className="entity-tag neutral">{theme.entity_name}</span>
+                                <div className="entity-meta">
+                                  <span className="confidence">신뢰도: {theme.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 중립적 산업 */}
+                      {neutralIndustries.length > 0 && (
+                        <div className="entity-category">
+                          <h6 className="entity-category-title">산업</h6>
+                          <div className="sentiment-entity-list">
+                            {neutralIndustries.map((industry, index) => (
+                              <div key={index} className="sentiment-entity-item">
+                                <span className="entity-tag neutral">{industry.entity_name}</span>
+                                <div className="entity-meta">
+                                  <span className="confidence">신뢰도: {industry.confidence_score?.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 거시경제 분석 */}
+                {sentimentData.macro && sentimentData.macro.length > 0 && (
+                  <div className="sentiment-group">
+                    <h5 className="sentiment-group-title">🌐 거시경제 영향 분석</h5>
+                    <div className="macro-analysis-list">
+                      {sentimentData.macro.map((industry, index) => (
+                        <div key={index} className="macro-item">
+                          <div className="macro-header">
+                            <span className="industry-name">{industry.industry_name}</span>
+                            <span className={`macro-sentiment ${industry.sentiment === '+' ? 'positive' : 'negative'}`}>
+                              {industry.sentiment === '+' ? '📈 긍정' : '📉 부정'}
+                            </span>
+                          </div>
+                          <div className="impact-details">
+                            <div className="overall-impact">
+                              전체 영향도: <span className={industry.sentiment === '+' ? 'positive' : 'negative'}>
+                                {industry.sentiment === '+' ? '+' : ''}{industry.overall_impact.toFixed(2)}%
+                              </span>
+                            </div>
+                            <div className="impact-timeline">
+                              <span>1주일: {industry.short_term_impact.toFixed(1)}%</span>
+                              <span>1개월: {industry.medium_term_impact.toFixed(1)}%</span>
+                              <span>3개월: {industry.long_term_impact.toFixed(1)}%</span>
+                            </div>
+                            {industry.related_stocks && industry.related_stocks.length > 0 && (
+                              <div className="related-stocks">
+                                관련주: {industry.related_stocks.join(', ')}
+                              </div>
+                            )}
+                            {industry.reasoning && (
+                              <div className="macro-reasoning">
+                                {industry.reasoning}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+
+              </div>
+            ) : (
+              <div className="no-sentiment-data">
+                <p>감정분석 결과가 없습니다.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
