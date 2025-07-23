@@ -139,7 +139,6 @@ const NewsDetailPage = () => {
         theme_name: currentClassification.theme_name
       });
       
-      // 현재 선택된 카테고리에 따라 API 엔드포인트 설정
       const endpoint = currentClassification.category === '산업군'
         ? 'http://localhost:5000/api/news/industry/regenerate'
         : currentClassification.category === '테마'
@@ -177,7 +176,6 @@ const NewsDetailPage = () => {
       console.log('재생성 결과:', result);
       
       if (result && (result.success || result.status === 'success')) {
-        // 성공적으로 재생성되면 데이터를 새로고침
         console.log('재생성 성공, 데이터 새로고침');
         fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
           .then(res => {
@@ -186,7 +184,6 @@ const NewsDetailPage = () => {
           })
           .then(data => {
             console.log('새로운 데이터:', data);
-            // 재생성 후에도 같은 구조로 처리
             if (data && data.id) {
               setRawNews({
                 id: data.id,
@@ -228,7 +225,6 @@ const NewsDetailPage = () => {
     }
   };
 
-  // 배경지식 슬라이드 관련 함수들
   const handlePrevBackground = () => {
     setCurrentBackgroundIndex(prev => 
       prev === 0 ? rawNews.classifications.length - 1 : prev - 1
@@ -241,7 +237,6 @@ const NewsDetailPage = () => {
     );
   };
 
-  // 배경지식 HTML 처리 함수 수정
   const processBackgroundHtml = (html) => {
     if (!html) return html;
 
@@ -259,7 +254,7 @@ const NewsDetailPage = () => {
       }
     );
 
-    // 2. stock-buttons div를 찾아서 처리 (기존 코드)
+    // 2. stock-buttons div를 찾아서 처리)
     return html.replace(
       /<div class="stock-buttons">([\s\S]*?)<\/div>/g,
       (match, content) => {
@@ -292,7 +287,6 @@ const NewsDetailPage = () => {
     );
   };
 
-  // getCurrentBackground 함수 수정
   const getCurrentBackground = () => {
     if (!rawNews?.classifications || !gptNews?.backgrounds) {
       console.log('배경지식 데이터 없음:', { 
@@ -320,19 +314,15 @@ const NewsDetailPage = () => {
     } else if (typeof background.background === 'object' && background.background.html) {
       backgroundContent = background.background.html;
     }
-
-    // 배경지식 HTML 처리
     return processBackgroundHtml(backgroundContent);
   };
 
-  // getAllBackgrounds 함수 수정
   const getAllBackgrounds = () => {
     if (!rawNews?.classifications || !gptNews?.backgrounds) {
       console.log('배경지식 데이터 없음');
       return null;
     }
     
-    // 모든 배경지식을 HTML로 결합하고 처리
     const backgrounds = gptNews.backgrounds
       .map(bg => {
         if (typeof bg.background === 'string') return bg.background;
@@ -346,38 +336,31 @@ const NewsDetailPage = () => {
     return backgrounds.join('<hr/>');
   };
 
-  // getCurrentSummary 함수 수정
   const getCurrentSummary = () => {
     if (!gptNews?.summary) return null;
     
     const summary = { ...gptNews.summary };
     
-    // full_summary가 JSON 문자열인 경우 파싱
     if (typeof summary.full_summary === 'string' && summary.full_summary.trim().startsWith('```json')) {
       try {
-        // ```json과 ``` 제거
         const jsonStr = summary.full_summary.replace(/```json\n|\n```/g, '').trim();
         const parsedSummary = JSON.parse(jsonStr);
         summary.full_summary = parsedSummary;
       } catch (err) {
         console.error('JSON 파싱 오류:', err);
-        // 파싱 실패시 원본 문자열 유지
       }
     }
     
     return summary;
   };
 
-  // JSON 객체를 JSX로 변환하는 함수 추가
   const renderSummaryContent = (content) => {
     if (!content) return '요약 데이터 없음';
     
-    // 문자열인 경우 그대로 반환
     if (typeof content === 'string') {
       return content;
     }
     
-    // 객체인 경우 구조화된 형태로 렌더링
     if (typeof content === 'object') {
       return (
         <div className="structured-summary">
@@ -416,22 +399,18 @@ const NewsDetailPage = () => {
     return '요약 데이터 없음';
   };
 
-  // getAllSummaries 함수 수정
   const getAllSummaries = () => {
     if (!gptNews?.summary) return null;
     
     const summary = { ...gptNews.summary };
     
-    // full_summary가 JSON 문자열인 경우 파싱
     if (typeof summary.full_summary === 'string' && summary.full_summary.trim().startsWith('```json')) {
       try {
-        // ```json과 ``` 제거
         const jsonStr = summary.full_summary.replace(/```json\n|\n```/g, '').trim();
         const parsedSummary = JSON.parse(jsonStr);
         summary.full_summary = parsedSummary;
       } catch (err) {
         console.error('JSON 파싱 오류:', err);
-        // 파싱 실패시 원본 문자열 유지
       }
     }
     
@@ -452,7 +431,6 @@ const NewsDetailPage = () => {
         const remainingStocks = JSON.parse(container.dataset.remaining || '[]');
         if (remainingStocks.length === 0) return;
 
-        // 남은 버튼들을 HTML로 만들어서 추가
         const newButtons = remainingStocks.map(
           stock => `<button onclick="navigateToStock('${stock.code}')">${stock.name}</button>`
         ).join('');
@@ -545,6 +523,59 @@ const NewsDetailPage = () => {
     }
   };
 
+  // 카테고리별로 그룹화하여 표시하는 함수
+  const formatClassifications = (classifications) => {
+    if (!classifications || classifications.length === 0) return null;
+    
+    // 카테고리별로 그룹화
+    const groupedByCategory = classifications.reduce((acc, classification) => {
+      const category = classification.category;
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(classification);
+      return acc;
+    }, {});
+
+    return Object.entries(groupedByCategory).map(([category, items], groupIndex) => {
+      let representatives = [];
+      
+      representatives = items.map(item => {
+        switch (category) {
+          case '개별주':
+            return item.stock_name;
+          case '산업군':
+            return item.industry_name;
+          case '테마':
+            return item.theme_name;
+          case '전반적':
+            return item.macro_category_name;
+          case '그 외':
+            return null;
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      return (
+        <React.Fragment key={groupIndex}>
+          <span className="news-category">{category}</span>
+          {representatives.length > 0 && (
+            <>
+              <span className="news-separator">|</span>
+              <span className="news-representative">
+                {representatives.join(' , ')}
+              </span>
+            </>
+          )}
+          {groupIndex < Object.keys(groupedByCategory).length - 1 && (
+            <span className="news-separator">|</span>
+          )}
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <PageLayout>
       <div className="news-detail-container">
@@ -556,19 +587,7 @@ const NewsDetailPage = () => {
           <h2 className="news-detail-title">{rawNews.title}</h2>
           <div className="news-meta">
             <div className="news-meta-left">
-              {rawNews.classifications.map((classification, index) => (
-                <React.Fragment key={index}>
-                  <span className="news-category">{classification.category}</span>
-                  {classification.representative && (
-                    <span className="news-representative">
-                      {classification.representative}
-                    </span>
-                  )}
-                  {index < rawNews.classifications.length - 1 && (
-                    <span className="news-separator">|</span>
-                  )}
-                </React.Fragment>
-              ))}
+              {formatClassifications(rawNews.classifications)}
             </div>
             <div className="news-details">
               <span className="news-press">{rawNews.press}</span>
