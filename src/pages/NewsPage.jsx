@@ -49,6 +49,60 @@ const NewsPage = () => {
     window.scrollTo(0, 0);
   };
 
+  // 카테고리별로 그룹화하여 표시하는 함수
+  const formatClassifications = (classifications) => {
+    if (!classifications || classifications.length === 0) return null;
+    
+    // 카테고리별로 그룹화
+    const groupedByCategory = classifications.reduce((acc, classification) => {
+      const category = classification.category;
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(classification);
+      return acc;
+    }, {});
+
+    return Object.entries(groupedByCategory).map(([category, items], groupIndex) => {
+      let representatives = [];
+      
+      // 카테고리별로 적절한 필드 사용
+      representatives = items.map(item => {
+        switch (category) {
+          case '개별주':
+            return item.stock_name;
+          case '산업군':
+            return item.industry_name;
+          case '테마':
+            return item.theme_name;
+          case '전반적':
+            return item.macro_category_name;
+          case '그 외':
+            return null; // 그 외는 추가 정보 없음
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      return (
+        <React.Fragment key={groupIndex}>
+          <span className="news-category">{category}</span>
+          {representatives.length > 0 && (
+            <>
+              <span className="news-separator">|</span>
+              <span className="news-representative">
+                {representatives.join(' , ')}
+              </span>
+            </>
+          )}
+          {groupIndex < Object.keys(groupedByCategory).length - 1 && (
+            <span className="news-separator">|</span>
+          )}
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <PageLayout>
       <div className="news-page-container">
@@ -73,19 +127,7 @@ const NewsPage = () => {
                 <h4 className="news-item-title">{news.title}</h4>
                 <div className="news-meta">
                   <div className="news-meta-left">
-                    {news.classifications.map((classification, index) => (
-                      <React.Fragment key={index}>
-                        <span className="news-category">{classification.category}</span>
-                        {classification.representative && (
-                          <span className="news-representative">
-                            {classification.representative}
-                          </span>
-                        )}
-                        {index < news.classifications.length - 1 && (
-                          <span className="news-separator">|</span>
-                        )}
-                      </React.Fragment>
-                    ))}
+                    {formatClassifications(news.classifications)}
                   </div>
                   <div className="news-details">
                     <span className="news-press">{news.press}</span>

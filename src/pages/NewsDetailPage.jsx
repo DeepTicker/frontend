@@ -49,25 +49,38 @@ const NewsDetailPage = () => {
       .then(data => {
         console.log('받은 데이터:', data); // 디버깅용 로그 추가
         
-        if (!data || !data.rawNews) {
+        if (!data || !data.id) {
           throw new Error('뉴스 데이터가 없습니다.');
         }
         
+        // 실제 API 응답 구조에 맞게 수정
         setRawNews({
-          ...data.rawNews,
-          classifications: Array.isArray(data.rawNews.classifications)
-            ? data.rawNews.classifications
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          press: data.press,
+          reporter: data.reporter,
+          url: data.url,
+          date: data.date,
+          crawled_at: data.crawled_at,
+          image_url: data.image_url,
+          image_desc: data.image_desc,
+          classifications: Array.isArray(data.classifications)
+            ? data.classifications
             : [],
         });
         
         // summary와 backgrounds를 gptNews로 설정
         setGptNews({
-          summary: data.summary || null,
+          summary: data.one_line_summary || data.full_summary ? {
+            one_line_summary: data.one_line_summary,
+            full_summary: data.full_summary
+          } : null,
           backgrounds: Array.isArray(data.backgrounds) ? data.backgrounds : []
         });
         
-        if (data.rawNews.classifications?.[0]?.category) {
-          const category = data.rawNews.classifications[0].category;
+        if (data.classifications?.[0]?.category) {
+          const category = data.classifications[0].category;
           setIsIndustry(category === '산업군');
           setIsTheme(category === '테마');
           setIsMacro(category === '전반적');
@@ -173,11 +186,31 @@ const NewsDetailPage = () => {
           })
           .then(data => {
             console.log('새로운 데이터:', data);
-            setRawNews(data?.rawNews || null);
-            setGptNews({
-              summary: data?.summary || null,
-              backgrounds: data?.backgrounds || []
-            });
+            // 재생성 후에도 같은 구조로 처리
+            if (data && data.id) {
+              setRawNews({
+                id: data.id,
+                title: data.title,
+                content: data.content,
+                press: data.press,
+                reporter: data.reporter,
+                url: data.url,
+                date: data.date,
+                crawled_at: data.crawled_at,
+                image_url: data.image_url,
+                image_desc: data.image_desc,
+                classifications: Array.isArray(data.classifications)
+                  ? data.classifications
+                  : [],
+              });
+              setGptNews({
+                summary: data.one_line_summary || data.full_summary ? {
+                  one_line_summary: data.one_line_summary,
+                  full_summary: data.full_summary
+                } : null,
+                backgrounds: Array.isArray(data.backgrounds) ? data.backgrounds : []
+              });
+            }
             alert('배경지식이 재생성되었습니다.');
           })
           .catch(err => {
