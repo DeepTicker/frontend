@@ -9,7 +9,7 @@ const NewsPreview = () => {
   useEffect(() => {
     const fetchMainNews = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/news/main?limit=5");
+        const res = await fetch("https://frontend-tau-virid-25.vercel.app/api/news/main?limit=5");
         const data = await res.json();
         setNewsList(data);
       } catch (error) {

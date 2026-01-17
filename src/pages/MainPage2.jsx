@@ -49,7 +49,7 @@ const MainPage2 = () => {
 
   const fetchGeminiData = async (stockId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/stocks/${stockId}/gemini`);
+      const res = await fetch(`https://backend-nuth.onrender.com/api/stocks/${stockId}/gemini`);
       const data = await res.json();
       return data.phrase;
     } catch (err) {
