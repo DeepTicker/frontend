@@ -4,6 +4,11 @@ import PageLayout from '../components/PageLayout';
 import BackgroundKnowledge from '../components/BackgroundKnowledge';
 import '../components/BackgroundKnowledge.css';
 import './NewsDetailPage.css';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const BASE_URL = 'https://backend-nuth.onrender.com';
+// const BASE_URL = 'http://localhost:5000';
 
 const NewsDetailPage = () => {
   const { id } = useParams();
@@ -39,7 +44,7 @@ const NewsDetailPage = () => {
     setLoading(true);
     setError(null);
     
-    fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+    fetch(`${BASE_URL}/api/news/${newsId}?level=${level}`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -88,7 +93,7 @@ const NewsDetailPage = () => {
   const fetchSentimentAnalysis = async () => {
     setSentimentLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/news/sentiment/${newsId}`);
+      const response = await fetch(`${BASE_URL}/api/news/sentiment/${newsId}`);
       const result = await response.json();
       
       if (result.success && result.data.summary.has_analysis) {
@@ -128,13 +133,13 @@ const NewsDetailPage = () => {
       
       // 현재 선택된 카테고리에 따라 API 엔드포인트 설정
       const endpoint = currentClassification.category === '산업군'
-        ? 'http://localhost:5000/api/news/industry/regenerate'
+        ? `${BASE_URL}/api/news/industry/regenerate`
         : currentClassification.category === '테마'
-          ? 'http://localhost:5000/api/news/theme/regenerate'
+          ? `${BASE_URL}/api/news/theme/regenerate`
           : currentClassification.category === '전반적'
-            ? 'http://localhost:5000/api/news/macro/regenerate'
+            ? `${BASE_URL}/api/news/macro/regenerate`
             : currentClassification.category === '개별주'
-              ? 'http://localhost:5000/api/news/stock/regenerate'
+              ? `${BASE_URL}/api/news/stock/regenerate`
               : null;
           
       if (!endpoint) {
@@ -166,7 +171,7 @@ const NewsDetailPage = () => {
       if (result && (result.success || result.status === 'success')) {
         // 성공적으로 재생성되면 데이터를 새로고침
         console.log('재생성 성공, 데이터 새로고침');
-        fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+        fetch(`${BASE_URL}/api/news/${newsId}?level=${level}`)
           .then(res => {
             if (!res.ok) throw new Error('데이터 갱신 실패');
             return res.json();
@@ -341,7 +346,11 @@ const NewsDetailPage = () => {
     
     // 문자열인 경우 그대로 반환
     if (typeof content === 'string') {
-      return content;
+      return (
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {content}
+        </ReactMarkdown>
+      );
     }
     
     // 객체인 경우 구조화된 형태로 렌더링
