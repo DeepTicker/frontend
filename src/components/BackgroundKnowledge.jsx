@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BackgroundKnowledge.css';
 
@@ -6,9 +6,12 @@ const BackgroundKnowledge = ({ background }) => {
   const navigate = useNavigate();
 
   // Handle navigation to stock page
-  const navigateToStock = (stockName) => {
+  // const navigateToStock = (stockName) => {
+  //   navigate(`/stock/${encodeURIComponent(stockName)}`);
+  // };
+  const navigateToStock = useCallback((stockName) => {
     navigate(`/stock/${encodeURIComponent(stockName)}`);
-  };
+  }, [navigate]);
 
   // Expose navigateToStock function to the window for the onClick handlers in HTML
   useEffect(() => {

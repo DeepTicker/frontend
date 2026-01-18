@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import BackgroundKnowledge from '../components/BackgroundKnowledge';
@@ -24,15 +24,15 @@ const NewsDetailPage = () => {
   const [error, setError] = useState(null);
   
   // 카테고리에 따른 상태 변수들
-  const [isIndustry, setIsIndustry] = useState(false);
-  const [isTheme, setIsTheme] = useState(false);
-  const [isMacro, setIsMacro] = useState(false);
-  const [isStock, setIsStock] = useState(false);
-  const [isElse, setIsElse] = useState(false);
+  const [, setIsIndustry] = useState(false);
+  const [, setIsTheme] = useState(false);
+  const [, setIsMacro] = useState(false);
+  const [, setIsStock] = useState(false);
+  const [, setIsElse] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [newsList, setNewsList] = useState([]);
-  const [totalNews, setTotalNews] = useState(0);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [newsList, setNewsList] = useState([]);
+  // const [totalNews, setTotalNews] = useState(0);
   const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
   
   // 감정분석 관련 상태
@@ -90,7 +90,7 @@ const NewsDetailPage = () => {
   }, [newsId, level]);
 
   // 감정분석 결과 조회
-  const fetchSentimentAnalysis = async () => {
+  const fetchSentimentAnalysis =  useCallback( async () => {
     setSentimentLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/news/sentiment/${newsId}`);
@@ -106,14 +106,14 @@ const NewsDetailPage = () => {
       setSentimentData(null);
     }
     setSentimentLoading(false);
-  };
+  }, [newsId]);
 
   // 페이지 로드 시 감정분석 결과 조회
   useEffect(() => {
     if (newsId) {
       fetchSentimentAnalysis();
     }
-  }, [newsId]);
+  }, [newsId, fetchSentimentAnalysis]);
   
   // 배경지식 재생성 함수
   const handleRegenerate = async () => {

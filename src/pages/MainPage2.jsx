@@ -44,8 +44,8 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Filler, 
 
 const MainPage2 = () => {
   const [chartDataList, setChartDataList] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [animateIndex, setAnimateIndex] = useState(null);
+  const [, setActiveIndex] = useState(0);
+  const [, setAnimateIndex] = useState(null);
 
   const fetchGeminiData = async (stockId) => {
     try {
@@ -280,7 +280,7 @@ const MainPage2 = () => {
                           callbacks: {
                             label: (context) => {
                               const value = context.parsed.y?.toFixed(0);
-                              const date = new Date(context.label);
+                              // const date = new Date(context.label);
                               return `금액: ${value} KRW`;
                             }
                           }
