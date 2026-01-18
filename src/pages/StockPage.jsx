@@ -11,7 +11,7 @@ export default function StockTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/stocks");
+        const res = await fetch("https://backend-nuth.onrender.com/api/stocks");
         const data = await res.json();
         setStocksData(data);
       } catch (error) {
