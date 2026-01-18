@@ -39,7 +39,7 @@ const NewsDetailPage = () => {
     setLoading(true);
     setError(null);
     
-    fetch(`http://localhost:5000/api/news/${newsId}?level=${level}`)
+    fetch(`https://backend-nuth.onrender.com/api/news/${newsId}?level=${level}`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);

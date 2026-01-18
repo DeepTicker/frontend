@@ -25,7 +25,7 @@ const NewsPage = () => {
   useEffect(() => {
     const fetchNewsList = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/news/list?page=${currentPage}&size=${pageSize}`);
+        const res = await fetch(`https://backend-nuth.onrender.com/api/news/list?page=${currentPage}&size=${pageSize}`);
         const data = await res.json();
         
         // 데이터 구조에 맞게 상태 업데이트
